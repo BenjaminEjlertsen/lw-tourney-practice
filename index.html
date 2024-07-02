@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Line War Tournament Seed Selector</title>
+    <title>Game Tournament Seed Selector</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -27,6 +27,20 @@
             max-width: 1000px;
             width: 100%;
             text-align: center;
+        }
+        .notification {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .notification.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .notification.success {
+            background-color: #d4edda;
+            color: #155724;
         }
         .seed-images { 
             display: flex; 
@@ -125,6 +139,7 @@
 <body>
     <div class="container">
         <h1>Game Tournament Seed Selector</h1>
+        <div class="notification" id="notification"></div>
         <div>
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
@@ -157,6 +172,13 @@
         let practiceSeeds = [];
         let currentRound = "1";
 
+        function showNotification(message, type) {
+            const notificationDiv = document.getElementById('notification');
+            notificationDiv.innerText = message;
+            notificationDiv.className = `notification ${type}`;
+            notificationDiv.style.display = 'block';
+        }
+
         function loadSeeds() {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
@@ -175,27 +197,33 @@
                 `;
                 seedImagesDiv.appendChild(seedDiv);
             });
+
+            document.getElementById('notification').style.display = 'none';
         }
 
         function banSeed(seed) {
             if (bannedSeeds.has(seed)) return;
             if (bannedSeeds.size >= 2) {
-                alert("You can only ban 2 seeds.");
+                showNotification("You can only ban 2 seeds.", "error");
                 return;
             }
 
             bannedSeeds.add(seed);
             document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
             practiceSeeds = practiceSeeds.filter(s => s !== seed);
+
+            if (bannedSeeds.size === 2) {
+                showNotification("Two seeds have been banned.", "success");
+            }
         }
 
         function rollSeed() {
             if (practiceSeeds.length === 0) {
-                alert("No seeds left to practice.");
+                showNotification("No seeds left to practice.", "error");
                 return;
             }
             const randomSeed = practiceSeeds[Math.floor(Math.random() * practiceSeeds.length)];
-            alert(`Practice on seed: ${randomSeed}`);
+            showNotification(`Practice on seed: ${randomSeed}`, "success");
         }
 
         function openModal(seed) {
