@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tournament</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .seed-images { display: flex; flex-wrap: wrap; gap: 10px; }
+        .seed-image { width: 30%; position: relative; }
+        .seed-image img { width: 100%; height: auto; }
+        .ban-button { position: absolute; top: 10px; right: 10px; background-color: red; color: white; border: none; padding: 5px; cursor: pointer; }
+        .roll-button { margin: 20px 0; padding: 10px; background-color: green; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Game Tournament Seed Selector</h1>
+    <div>
+        <label for="round-select">Select Round:</label>
+        <select id="round-select" onchange="loadSeeds()">
+            <option value="1">Round 1</option>
+            <option value="2">Round 2</option>
+            <option value="3">Round 3</option>
+        </select>
+    </div>
+    <div class="seed-images" id="seed-images">
+        <!-- Seed images will be inserted here -->
+    </div>
+    <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
+    <script>
+        const seeds = {
+            "1": [51706, 375060, 706131, 824517, 917340],
+            "2": [346668, 741963, 851742, 933044, 820477],
+            "3": [525637, 634611, 674629, 668659, 889078]
+        };
+        const bannedSeeds = new Set();
+        const practiceSeeds = [];
+
+        function loadSeeds() {
+            const round = document.getElementById('round-select').value;
+            const seedImagesDiv = document.getElementById('seed-images');
+            seedImagesDiv.innerHTML = '';
+
+            seeds[round].forEach(seed => {
+                const seedDiv = document.createElement('div');
+                seedDiv.classList.add('seed-image');
+                seedDiv.innerHTML = `
+                    <img src="path_to_images/${seed}.png" alt="Seed ${seed}">
+                    <button class="ban-button" onclick="banSeed(${seed})">Ban</button>
+                `;
+                seedImagesDiv.appendChild(seedDiv);
+                practiceSeeds.push(seed);
+            });
+        }
+
+        function banSeed(seed) {
+            bannedSeeds.add(seed);
+            if (bannedSeeds.size > 2) {
+                alert("You can only ban 2 seeds.");
+                return;
+            }
+            document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
+            practiceSeeds.splice(practiceSeeds.indexOf(seed), 1);
+        }
+
+        function rollSeed() {
+            if (practiceSeeds.length === 0) {
+                alert("No seeds left to practice.");
+                return;
+            }
+            const randomSeed = practiceSeeds[Math.floor(Math.random() * practiceSeeds.length)];
+            alert(`Practice on seed: ${randomSeed}`);
+        }
+
+        window.onload = loadSeeds;
+    </script>
+</body>
+</html>
