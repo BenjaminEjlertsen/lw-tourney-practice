@@ -3,45 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Tournament</title>
+    <title>Game Tournament Seed Selector</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .seed-images { display: flex; flex-wrap: wrap; gap: 10px; }
-        .seed-image { width: 30%; position: relative; }
-        .seed-image img { width: 100%; height: auto; }
-        .ban-button { position: absolute; top: 10px; right: 10px; background-color: red; color: white; border: none; padding: 5px; cursor: pointer; }
-        .roll-button { margin: 20px 0; padding: 10px; background-color: green; color: white; border: none; cursor: pointer; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f4; 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 { 
+            color: #333; 
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+        .seed-images { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+        }
+        .seed-image { 
+            width: 30%; 
+            position: relative; 
+        }
+        .seed-image img { 
+            width: 100%; 
+            height: auto; 
+            border-radius: 8px;
+        }
+        .ban-button { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            background-color: red; 
+            color: white; 
+            border: none; 
+            padding: 5px; 
+            cursor: pointer; 
+            border-radius: 5px;
+        }
+        .roll-button { 
+            margin: 20px 0; 
+            padding: 10px; 
+            background-color: green; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 5px;
+            width: 100%;
+        }
+        .roll-button:hover, .ban-button:hover {
+            opacity: 0.8;
+        }
+        select, option {
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
-    <h1>Game Tournament Seed Selector</h1>
-    <div>
-        <label for="round-select">Select Round:</label>
-        <select id="round-select" onchange="loadSeeds()">
-            <option value="1">Round 1</option>
-            <option value="2">Round 2</option>
-            <option value="3">Round 3</option>
-        </select>
+    <div class="container">
+        <h1>Game Tournament Seed Selector</h1>
+        <div>
+            <label for="round-select">Select Round:</label>
+            <select id="round-select" onchange="loadSeeds()">
+                <option value="1">Round 1</option>
+                <option value="2">Round 2</option>
+                <option value="3">Round 3</option>
+            </select>
+        </div>
+        <div class="seed-images" id="seed-images">
+            <!-- Seed images will be inserted here -->
+        </div>
+        <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     </div>
-    <div class="seed-images" id="seed-images">
-        <!-- Seed images will be inserted here -->
-    </div>
-    <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     <script>
         const seeds = {
             "1": [51706, 375060, 706131, 824517, 917340],
             "2": [346668, 741963, 851742, 933044, 820477],
             "3": [525637, 634611, 674629, 668659, 889078]
         };
-        const bannedSeeds = new Set();
-        const practiceSeeds = [];
+        let bannedSeeds = new Set();
+        let practiceSeeds = [];
+        let currentRound = "1";
 
         function loadSeeds() {
-            const round = document.getElementById('round-select').value;
+            currentRound = document.getElementById('round-select').value;
+            bannedSeeds = new Set();
+            practiceSeeds = [...seeds[currentRound]];
+
             const seedImagesDiv = document.getElementById('seed-images');
             seedImagesDiv.innerHTML = '';
 
-            seeds[round].forEach(seed => {
+            practiceSeeds.forEach(seed => {
                 const seedDiv = document.createElement('div');
                 seedDiv.classList.add('seed-image');
                 seedDiv.innerHTML = `
@@ -49,18 +117,19 @@
                     <button class="ban-button" onclick="banSeed(${seed})">Ban</button>
                 `;
                 seedImagesDiv.appendChild(seedDiv);
-                practiceSeeds.push(seed);
             });
         }
 
         function banSeed(seed) {
-            bannedSeeds.add(seed);
-            if (bannedSeeds.size > 2) {
+            if (bannedSeeds.has(seed)) return;
+            if (bannedSeeds.size >= 2) {
                 alert("You can only ban 2 seeds.");
                 return;
             }
+
+            bannedSeeds.add(seed);
             document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
-            practiceSeeds.splice(practiceSeeds.indexOf(seed), 1);
+            practiceSeeds = practiceSeeds.filter(s => s !== seed);
         }
 
         function rollSeed() {
