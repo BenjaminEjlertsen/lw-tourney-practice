@@ -134,7 +134,11 @@
             font-weight: bold;
             color: white;
         }
+        .panzoom {
+            cursor: grab;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -158,7 +162,9 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <div class="modal-seed" id="modal-seed"></div>
-            <img id="modal-image" src="" alt="Seed Image">
+            <div id="panzoom-container">
+                <img id="modal-image" src="" alt="Seed Image">
+            </div>
         </div>
     </div>
 
@@ -171,6 +177,7 @@
         let bannedSeeds = new Set();
         let practiceSeeds = [];
         let currentRound = "1";
+        let panzoomInstance;
 
         function showNotification(message, type) {
             const notificationDiv = document.getElementById('notification');
@@ -227,13 +234,28 @@
         }
 
         function openModal(seed) {
-            document.getElementById('modal-image').src = `path_to_images/${seed}.png`;
+            const modalImage = document.getElementById('modal-image');
+            modalImage.src = `path_to_images/${seed}.png`;
             document.getElementById('modal-seed').innerText = `Seed: ${seed}`;
             document.getElementById('myModal').style.display = "block";
+
+            if (panzoomInstance) {
+                panzoomInstance.dispose();
+            }
+
+            panzoomInstance = Panzoom(modalImage, {
+                maxScale: 5,
+                contain: 'outside'
+            });
+
+            modalImage.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWheel);
         }
 
         function closeModal() {
             document.getElementById('myModal').style.display = "none";
+            if (panzoomInstance) {
+                panzoomInstance.dispose();
+            }
         }
 
         window.onload = loadSeeds;
