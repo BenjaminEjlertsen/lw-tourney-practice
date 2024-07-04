@@ -139,11 +139,21 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.26.0/dist/umd/supabase.min.js"></script>
+    <script>const supabase = supabase.createClient('https://todkxtxdbuqilmtwtwyk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZGt4dHhkYnVxaWxtdHd0d3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc4NDcxMjAsImV4cCI6MjAzMzQyMzEyMH0.8I_WtWE0W8NHSKlotC3yGjjggxXuwck3A7UnOQv7MbA');</script>
+
 </head>
 <body>
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
+        <div>
+            <button onclick="createLobby()">Create Lobby</button>
+            <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
+            <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
+        </div>
+        <div id="lobby"></div>
+
         <div>
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
@@ -263,6 +273,80 @@
         window.onclick = function(event) {
             if (event.target == document.getElementById('myModal')) {
                 closeModal();
+            }
+        }
+        async function createLobby() {
+            const lobbyId = Math.random().toString(36).substr(2, 9);
+            const { data, error } = await supabase
+                .from('lobbies')
+                .insert([{ 
+                    id: lobbyId, 
+                    seeds: [51706, 375060, 706131, 824517, 917340], 
+                    banned_seeds: [], 
+                    current_player: 'player1' 
+                }]);
+            if (error) {
+                console.error('Error creating lobby:', error);
+            } else {
+                alert('Lobby created with ID: ' + lobbyId);
+                joinLobby(lobbyId);
+            }
+        }
+    
+        async function joinLobby(lobbyId) {
+            const { data: lobby, error } = await supabase
+                .from('lobbies')
+                .select('*')
+                .eq('id', lobbyId)
+                .single();
+            if (error) {
+                console.error('Error joining lobby:', error);
+            } else {
+                displayLobby(lobby, lobbyId);
+            }
+        }
+    
+        async function banSeed(lobbyId, seed) {
+            let { data: lobby, error } = await supabase
+                .from('lobbies')
+                .select('*')
+                .eq('id', lobbyId)
+                .single();
+            if (error) {
+                console.error('Error fetching lobby:', error);
+                return;
+            }
+            
+            if (lobby.current_player === 'player1') {
+                lobby.banned_seeds.push(seed);
+                lobby.current_player = 'player2';
+            } else {
+                lobby.banned_seeds.push(seed);
+                lobby.current_player = 'player1';
+            }
+            lobby.seeds = lobby.seeds.filter(s => s !== seed);
+    
+            const { error: updateError } = await supabase
+                .from('lobbies')
+                .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
+                .eq('id', lobbyId);
+            if (updateError) {
+                console.error('Error updating lobby:', updateError);
+            } else {
+                displayLobby(lobby, lobbyId);
+            }
+        }
+    
+        function displayLobby(lobby, lobbyId) {
+            document.getElementById('lobby').innerHTML = `
+                <div>Lobby ID: ${lobbyId}</div>
+                <div>Current Player: ${lobby.current_player}</div>
+                <div>Available Seeds: ${lobby.seeds.join(', ')}</div>
+                <div>Banned Seeds: ${lobby.banned_seeds.join(', ')}</div>
+                ${lobby.seeds.map(seed => `<button onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
+            `;
+            if (lobby.seeds.length === 1) {
+                alert('Remaining seed is: ' + lobby.seeds[0]);
             }
         }
     </script>
