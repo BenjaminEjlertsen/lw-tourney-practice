@@ -158,6 +158,7 @@
             <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
         </div>
         <div id="lobby"></div>
+        <div>Players: <span id="players"></span></div>
 
         <div>
             <label for="round-select">Select Round:</label>
@@ -318,7 +319,7 @@
         }
         
         function subscribeToLobby(lobbyId) {
-            const lobbyChannel = supabase
+            supabase
                 .channel(`public:lobbies:id_text=eq.${lobbyId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id_text=eq.${lobbyId}` }, payload => {
                     displayLobby(payload.new, lobbyId);
@@ -326,13 +327,14 @@
                 .subscribe();
         
             // Subscribe to players joining
-            const playersChannel = supabase
+            supabase
                 .channel(`public:players:id_text=eq.${lobbyId}`)
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'players', filter: `id_text=eq.${lobbyId}` }, payload => {
                     displayPlayers(lobbyId);
                 })
                 .subscribe();
         }
+
 
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
@@ -372,14 +374,14 @@
                 <div>Current Player: ${lobby.current_player}</div>
                 <div>Available Seeds: ${lobby.seeds.join(', ')}</div>
                 <div>Banned Seeds: ${lobby.banned_seeds.join(', ')}</div>
-                <div>Players: <span id="players"></span></div>
                 ${lobby.seeds.map(seed => `<button onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
-                alert('Remaining seed is: ' + lobby.seeds[0]);
+                showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
+
         
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
@@ -389,9 +391,15 @@
             if (error) {
                 console.error('Error fetching players:', error);
             } else {
-                document.getElementById('players').innerText = players.map(player => player.name).join(', ');
+                const playersElement = document.getElementById('players');
+                if (playersElement) {
+                    playersElement.innerText = players.map(player => player.name).join(', ');
+                } else {
+                    console.error('Players element not found');
+                }
             }
         }
+
 
     </script>
 </body>
