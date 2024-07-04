@@ -256,32 +256,6 @@
         
             document.getElementById('notification').style.display = 'none';
         }
-
-    
-        function banSeed(seed) {
-            if (bannedSeeds.has(seed)) return;
-            if (bannedSeeds.size >= 2) {
-                showNotification("You can only ban 2 seeds.", "error");
-                return;
-            }
-    
-            bannedSeeds.add(seed);
-            document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
-            practiceSeeds = practiceSeeds.filter(s => s !== seed);
-    
-            if (bannedSeeds.size === 2) {
-                showNotification("Two seeds have been banned.", "success");
-            }
-        }
-    
-        function rollSeed() {
-            if (practiceSeeds.length === 0) {
-                showNotification("No seeds left to practice.", "error");
-                return;
-            }
-            const randomSeed = practiceSeeds[Math.floor(Math.random() * practiceSeeds.length)];
-            showNotification(`Practice on seed: ${randomSeed}`, "success");
-        }
     
         function openModal(seed) {
             const modalImage = document.getElementById('modal-image');
