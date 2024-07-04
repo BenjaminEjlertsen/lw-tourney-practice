@@ -150,7 +150,7 @@
 <body>
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
-        <div class="notification" id_text="notification"></div>
+        <div class="notification" id="notification"></div>
         <div><input type="text" id="playerNameInput" placeholder="Enter Your Name"></div>
         <div>
             <button onclick="createLobby()">Create Lobby</button>
@@ -293,6 +293,7 @@
                 }]);
             if (error) {
                 console.error('Error creating lobby:', error);
+                showNotification('Error creating lobby: ' + error.message, 'error');
             } else {
                 showNotification('Lobby created with ID: ' + lobbyId, 'success');
                 joinLobby(lobbyId);
