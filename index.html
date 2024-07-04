@@ -312,10 +312,11 @@
                 showNotification('Error creating lobby: ' + error.message, 'error');
             } else {
                 showNotification('Lobby created with ID: ' + lobbyId, 'success');
-                displayLobby(lobby, lobbyId);
+                displayLobby({ id_text: lobbyId, round: selectedRound, seeds: seeds[selectedRound], banned_seeds: [], current_player: 'player1' }, lobbyId);
                 joinLobby(lobbyId);
             }
         }
+
 
         
         async function joinLobby(lobbyId) {
@@ -384,9 +385,12 @@
             
             if (error || !lobby) {
                 console.error('Error fetching lobby:', error);
-                showNotification('Error fetching lobby: ' + error.message, 'error');
+                showNotification('Error fetching lobby: ' + (error ? error.message : 'Lobby not found'), 'error');
                 return;
             }
+            
+            if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
+            if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
             
             if (lobby.current_player === 'player1') {
                 lobby.banned_seeds.push(seed);
@@ -410,6 +414,7 @@
             }
         }
 
+
         
         function subscribeToLobby(lobbyId) {
             supabase
@@ -429,11 +434,14 @@
         }
     
         function displayLobby(lobby, lobbyId) {
+            const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
+            const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
+            
             document.getElementById('lobby').innerHTML = `
                 <div>Lobby ID: ${lobbyId}</div>
                 <div>Current Player: ${lobby.current_player}</div>
-                <div>Available Seeds: ${lobby.seeds.join(', ')}</div>
-                <div>Banned Seeds: ${lobby.banned_seeds.join(', ')}</div>
+                <div>Available Seeds: ${availableSeeds}</div>
+                <div>Banned Seeds: ${bannedSeeds}</div>
                 ${lobby.seeds.map(seed => `<button onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
             displayPlayers(lobbyId);
@@ -441,6 +449,7 @@
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
+
 
         
         async function displayPlayers(lobbyId) {
