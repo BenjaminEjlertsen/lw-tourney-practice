@@ -214,7 +214,22 @@
             }, 3000);
         }
 
-    
+        function initializeState() {
+            bannedSeeds = new Set();
+            practiceSeeds = [];
+            currentRound = "1";
+            document.getElementById('round-select').value = currentRound;
+            document.getElementById('seed-images').innerHTML = '';
+            document.getElementById('lobby').innerHTML = '';
+            document.getElementById('players-container').innerHTML = '<div>Players: <span id="players"></span></div>';
+            document.getElementById('notification').style.display = 'none';
+        }
+
+        window.onload = () => {
+            initializeState();
+            loadSeeds();
+        };
+        
         function loadSeeds() {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
