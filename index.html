@@ -162,15 +162,16 @@
         <div>Players: <span id="players"></span></div>
         </div>
 
-
         <div>
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
+                <option value="" disabled selected>Select a round</option>
                 <option value="1">Round 1</option>
                 <option value="2">Round 2</option>
                 <option value="3">Round 3</option>
             </select>
         </div>
+
         <div class="seed-images" id="seed-images">
             <!-- Seed images will be inserted here -->
         </div>
@@ -311,8 +312,13 @@
         }
     
        async function createLobby() {
-            const lobbyId = Math.random().toString(36).substr(2, 9);
             const selectedRound = document.getElementById('round-select').value;
+            if (!selectedRound) {
+                showNotification('Please select a round before creating a lobby.', 'error');
+                return;
+            }
+        
+            const lobbyId = Math.random().toString(36).substr(2, 9);
             const { data, error } = await supabase
                 .from('lobbies')
                 .insert([{ 
@@ -327,10 +333,16 @@
                 showNotification('Error creating lobby: ' + error.message, 'error');
             } else {
                 showNotification('Lobby created with ID: ' + lobbyId, 'success');
-                displayLobby({ id_text: lobbyId, round: selectedRound, seeds: seeds[selectedRound], banned_seeds: [], current_player: 'player1' }, lobbyId);
+                const updatedLobby = await supabase
+                    .from('lobbies')
+                    .select('*')
+                    .eq('id_text', lobbyId)
+                    .single();
+                displayLobby(updatedLobby.data, lobbyId);
                 joinLobby(lobbyId);
             }
         }
+
         
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
@@ -439,7 +451,7 @@
             document.getElementById('notification').style.display = 'none';
         }
                 
-        async function banSeed(lobbyId, seed) {
+       async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
                 .select('*')
@@ -468,6 +480,11 @@
                 return;
             }
         
+            if (lobby.seeds.length <= 1) {
+                showNotification("You cannot ban the final seed.", "error");
+                return;
+            }
+        
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
             
@@ -487,6 +504,7 @@
                 displayLobby(lobby, lobbyId);
             }
         }
+
         
         function subscribeToLobby(lobbyId) {
             supabase
@@ -529,7 +547,7 @@
                 <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
-                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
+                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
         
             document.querySelectorAll('.seed-image img').forEach(img => {
@@ -541,11 +559,15 @@
                 }
             });
         
+            // Disable round selection if both players are in the lobby
+            document.getElementById('round-select').disabled = players.length >= 2;
+        
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
+
 
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
