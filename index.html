@@ -218,8 +218,8 @@
         function initializeState() {
             bannedSeeds = new Set();
             practiceSeeds = [];
-            currentRound = "1";
-            document.getElementById('round-select').value = currentRound;
+            currentRound = "";
+            document.getElementById('round-select').value = "";
             document.getElementById('seed-images').innerHTML = '';
             document.getElementById('lobby').innerHTML = '';
             document.getElementById('players-container').innerHTML = '<div>Players: <span id="players"></span></div>';
@@ -228,7 +228,6 @@
 
         window.onload = () => {
             initializeState();
-            loadSeeds();
         };
         
         function loadSeeds() {
@@ -348,7 +347,6 @@
                 joinLobby(lobbyId);
             }
         }
-
         
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
@@ -435,8 +433,13 @@
             }
         }
 
-        function loadSeeds(lobbyId) {
+        function loadSeeds() {
             currentRound = document.getElementById('round-select').value;
+            if (!currentRound || !seeds[currentRound]) {
+                console.warn('Round not selected or invalid.');
+                return;
+            }
+            
             bannedSeeds = new Set();
             practiceSeeds = [...seeds[currentRound]];
         
@@ -448,7 +451,7 @@
                 seedDiv.classList.add('seed-image');
                 seedDiv.innerHTML = `
                     <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
-                    <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})">Ban</button>
+                    <button class="ban-button" onclick="banSeed('${currentRound}', ${seed})">Ban</button>
                     <div class="seed-number">Seed: ${seed}</div>
                 `;
                 seedImagesDiv.appendChild(seedDiv);
@@ -456,6 +459,7 @@
         
             document.getElementById('notification').style.display = 'none';
         }
+
                 
        async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
@@ -573,6 +577,7 @@
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
+
 
 
         async function displayPlayers(lobbyId) {
