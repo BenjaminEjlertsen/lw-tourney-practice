@@ -317,21 +317,22 @@
         }
 
         function subscribeToLobby(lobbyId) {
-            supabase
-                .from(`lobbies:id_text=eq.${lobbyId}`)
-                .on('UPDATE', payload => {
+            const lobbyChannel = supabase
+                .channel(`public:lobbies:id_text=eq.${lobbyId}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id_text=eq.${lobbyId}` }, payload => {
                     displayLobby(payload.new, lobbyId);
                 })
                 .subscribe();
         
             // Subscribe to players joining
-            supabase
-                .from(`players:id_text=eq.${lobbyId}`)
-                .on('INSERT', payload => {
+            const playersChannel = supabase
+                .channel(`public:players:id_text=eq.${lobbyId}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'players', filter: `id_text=eq.${lobbyId}` }, payload => {
                     displayPlayers(lobbyId);
                 })
                 .subscribe();
         }
+
 
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
