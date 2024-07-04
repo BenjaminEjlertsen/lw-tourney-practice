@@ -18,6 +18,7 @@
         }
         h1 { 
             color: #333; 
+            margin-bottom: 20px;
         }
         .container {
             background-color: white;
@@ -25,14 +26,16 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             max-width: 1000px;
-            width: 100%;
+            width: 90%;
             text-align: center;
+            margin-bottom: 20px;
         }
         .notification {
             margin-bottom: 20px;
             padding: 10px;
             border-radius: 5px;
             display: none;
+            font-weight: bold;
         }
         .notification.error {
             background-color: #f8d7da;
@@ -41,6 +44,27 @@
         .notification.success {
             background-color: #d4edda;
             color: #155724;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-group input, .input-group button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        .input-group button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .input-group button:hover {
+            background-color: #0056b3;
         }
         .seed-images { 
             display: flex; 
@@ -58,6 +82,10 @@
             height: auto; 
             border-radius: 8px;
             cursor: pointer;
+            transition: filter 0.3s ease;
+        }
+        .seed-image img.grayscale {
+            filter: grayscale(100%);
         }
         .ban-button { 
             position: absolute; 
@@ -145,24 +173,24 @@
         const { createClient } = window.supabase;
         const supabase = createClient('https://todkxtxdbuqilmtwtwyk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZGt4dHhkYnVxaWxtdHd0d3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc4NDcxMjAsImV4cCI6MjAzMzQyMzEyMH0.8I_WtWE0W8NHSKlotC3yGjjggxXuwck3A7UnOQv7MbA');
     </script>
-    
 </head>
 <body>
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
-        <div><input type="text" id="playerNameInput" placeholder="Enter Your Name"></div>
-        <div>
+        <div class="input-group">
+            <input type="text" id="playerNameInput" placeholder="Enter Your Name">
+        </div>
+        <div class="input-group">
             <button onclick="createLobby()">Create Lobby</button>
             <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
             <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
         </div>
         <div id="lobby"></div>
         <div id="players-container">
-        <div>Players: <span id="players"></span></div>
+            <div>Players: <span id="players"></span></div>
         </div>
-
-        <div>
+        <div class="input-group">
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
                 <option value="" disabled selected>Select a round</option>
@@ -171,7 +199,6 @@
                 <option value="3">Round 3</option>
             </select>
         </div>
-
         <div class="seed-images" id="seed-images">
             <!-- Seed images will be inserted here -->
         </div>
