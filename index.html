@@ -246,35 +246,6 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .turn-status {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        
-        .turn-status.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .turn-status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .banned-seed {
-            animation: banned-seed-animation 1s ease;
-        }
-        
-        @keyframes banned-seed-animation {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
 
 
     </style>
@@ -298,7 +269,7 @@
         <div class="input-group">
             <div class="input-group-item">
                 <button class="large-button" onclick="createLobby()">Create Lobby</button>
-                <p class="description">Create a new lobby and share the ID with your opponent.</p>
+                <p class="description">Create a new lobby and share the generated ID with your opponent.</p>
             </div>
             <div class="input-group-item">
                 <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
@@ -335,11 +306,6 @@
         <div class="seed-images" id="seed-images">
             <!-- Seed images will be inserted here -->
         </div>
-    
-        <div class="turn-status" id="turn-status">
-            <!-- Turn status will be dynamically inserted here -->
-        </div>
-    
         <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     </div>
     
@@ -391,35 +357,10 @@
             document.getElementById('notification').style.display = 'none';
         }
 
-        function rollSeed() {
-            if (practiceSeeds.length === 0) {
-                showNotification("No seeds left to practice.", "error");
-                return;
-            }
-            const randomSeed = practiceSeeds[Math.floor(Math.random() * practiceSeeds.length)];
-            showNotification(`Practice on seed: ${randomSeed}`, "success");
-        }
-
         window.onload = () => {
             initializeState();
         };
-
-        function updateTurnStatus(isCurrentPlayer) {
-            const turnStatusDiv = document.getElementById('turn-status');
-            if (!turnStatusDiv) {
-                console.error('Turn status element not found');
-                return;
-            }
-            if (isCurrentPlayer) {
-                turnStatusDiv.innerText = 'Your turn to ban!';
-                turnStatusDiv.className = 'turn-status success';
-            } else {
-                turnStatusDiv.innerText = 'Waiting for the other player to ban...';
-                turnStatusDiv.className = 'turn-status error';
-            }
-            turnStatusDiv.style.display = 'block';
-        }
-                
+        
         function openModal(seed) {
             const modalImage = document.getElementById('modal-image');
             modalImage.src = `path_to_images/${seed}.png`;
@@ -579,7 +520,7 @@
         }
 
 
-        function loadSeeds() {
+        function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
             if (!currentRound || !seeds[currentRound]) {
                 console.warn('Round not selected or invalid.');
@@ -597,7 +538,7 @@
                 seedDiv.classList.add('seed-image');
                 seedDiv.innerHTML = `
                     <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
-                    <button class="ban-button" onclick="banSeed(null, ${seed})">Ban</button>
+                    <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})">Ban</button>
                     <div class="seed-number">Seed: ${seed}</div>
                 `;
                 seedImagesDiv.appendChild(seedDiv);
@@ -607,89 +548,64 @@
         }
            
        async function banSeed(lobbyId, seed) {
-        if (lobbyId) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
                 .select('*')
                 .eq('id_text', lobbyId)
                 .single();
-    
+        
             if (error || !lobby) {
                 console.error('Error fetching lobby:', error || 'Lobby not found');
                 showNotification('Error fetching lobby: ' + (error ? error.message : 'Lobby not found'), 'error');
                 return;
             }
-    
+        
             const playerName = document.getElementById('playerNameInput').value;
             const { data: players, error: playersError } = await supabase
                 .from('players')
                 .select('name')
                 .eq('id_text', lobbyId);
-    
+        
             if (playersError) {
                 console.error('Error fetching players:', playersError);
                 showNotification('Error fetching players: ' + playersError.message, 'error');
                 return;
             }
-    
+        
             let currentPlayerName = 'Unknown';
             if (players && players.length > 0) {
                 currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
             }
-    
+        
             if (playerName !== currentPlayerName) {
                 showNotification("It's not your turn to ban.", "error");
                 return;
             }
-    
+        
             if (lobby.seeds.length <= 1) {
                 showNotification("You cannot ban the final seed.", "error");
                 return;
             }
-    
+        
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
-    
+        
             lobby.banned_seeds.push(seed);
             lobby.current_player = (lobby.current_player === 'player1' ? 'player2' : 'player1');
             lobby.seeds = lobby.seeds.filter(s => s !== seed);
-    
+        
             const { error: updateError } = await supabase
                 .from('lobbies')
                 .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
                 .eq('id_text', lobbyId);
-    
+        
             if (updateError) {
                 console.error('Error updating lobby:', updateError);
                 showNotification('Error updating lobby: ' + updateError.message, 'error');
             } else {
                 displayLobby(lobby, lobbyId);
-    
-                // Visual feedback for the banned seed
-                const bannedSeedImg = document.querySelector(`.seed-image img[alt="Seed ${seed}"]`);
-                if (bannedSeedImg) {
-                    bannedSeedImg.classList.add('banned-seed');
-                    setTimeout(() => {
-                        bannedSeedImg.classList.remove('banned-seed');
-                    }, 1000);
-                }
-            }
-        } else {
-            if (bannedSeeds.has(seed)) return;
-            if (bannedSeeds.size >= 2) {
-                showNotification("You can only ban 2 seeds.", "error");
-                return;
-            }
-    
-            bannedSeeds.add(seed);
-            document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
-            practiceSeeds = practiceSeeds.filter(s => s !== seed);
-    
-            if (bannedSeeds.size === 2) {
-                showNotification("Two seeds have been banned.", "success");
             }
         }
-    }
                 
         function subscribeToLobby(lobbyId) {
             supabase
@@ -709,6 +625,7 @@
                 .subscribe();
         }
 
+    
         async function displayLobby(lobby, lobbyId) {
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
@@ -718,7 +635,7 @@
                 .from('players')
                 .select('name')
                 .eq('id_text', lobbyId);
-        
+            
             let currentPlayerName = 'Unknown';
             if (players && players.length > 0) {
                 currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
@@ -731,11 +648,12 @@
             lobbyDiv.innerHTML = `
                 <h2>Lobby Info</h2>
                 <div>Lobby ID: ${lobbyId}</div>
+                <div>Current Player to Ban: ${currentPlayerName}</div>
+                <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
+                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
-        
-            updateTurnStatus(isCurrentPlayer);
         
             document.querySelectorAll('.seed-image img').forEach(img => {
                 const seedNumber = parseInt(img.alt.split(' ')[1]);
