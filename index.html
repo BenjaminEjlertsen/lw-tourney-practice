@@ -440,26 +440,31 @@
         
             document.getElementById('notification').style.display = 'none';
         }
-
-                
+   
        async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
                 .select('*')
                 .eq('id_text', lobbyId)
                 .single();
-            
+        
             if (error || !lobby) {
-                console.error('Error fetching lobby:', error);
+                console.error('Error fetching lobby:', error || 'Lobby not found');
                 showNotification('Error fetching lobby: ' + (error ? error.message : 'Lobby not found'), 'error');
                 return;
             }
-            
+        
             const playerName = document.getElementById('playerNameInput').value;
-            const { data: players } = await supabase
+            const { data: players, error: playersError } = await supabase
                 .from('players')
                 .select('name')
                 .eq('id_text', lobbyId);
+        
+            if (playersError) {
+                console.error('Error fetching players:', playersError);
+                showNotification('Error fetching players: ' + playersError.message, 'error');
+                return;
+            }
         
             let currentPlayerName = 'Unknown';
             if (players && players.length > 0) {
@@ -478,7 +483,7 @@
         
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
-            
+        
             lobby.banned_seeds.push(seed);
             lobby.current_player = (lobby.current_player === 'player1' ? 'player2' : 'player1');
             lobby.seeds = lobby.seeds.filter(s => s !== seed);
@@ -487,7 +492,7 @@
                 .from('lobbies')
                 .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
                 .eq('id_text', lobbyId);
-            
+        
             if (updateError) {
                 console.error('Error updating lobby:', updateError);
                 showNotification('Error updating lobby: ' + updateError.message, 'error');
@@ -495,7 +500,6 @@
                 displayLobby(lobby, lobbyId);
             }
         }
-
         
         function subscribeToLobby(lobbyId) {
             supabase
