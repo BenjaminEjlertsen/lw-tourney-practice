@@ -158,7 +158,10 @@
             <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
         </div>
         <div id="lobby"></div>
+        <div id="players-container">
         <div>Players: <span id="players"></span></div>
+        </div>
+
 
         <div>
             <label for="round-select">Select Round:</label>
@@ -282,13 +285,15 @@
             }
         }
     
-        async function createLobby() {
+       async function createLobby() {
             const lobbyId = Math.random().toString(36).substr(2, 9);
+            const selectedRound = document.getElementById('round-select').value;
             const { data, error } = await supabase
                 .from('lobbies')
                 .insert([{ 
                     id_text: lobbyId, 
-                    seeds: [51706, 375060, 706131, 824517, 917340], 
+                    round: selectedRound,
+                    seeds: seeds[selectedRound], 
                     banned_seeds: [], 
                     current_player: 'player1' 
                 }]);
@@ -300,13 +305,28 @@
                 joinLobby(lobbyId);
             }
         }
-    
+        
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
             if (!playerName) {
                 showNotification('Please enter your name.', 'error');
                 return;
             }
+        
+            const { data: lobby, error: lobbyError } = await supabase
+                .from('lobbies')
+                .select('*')
+                .eq('id_text', lobbyId)
+                .single();
+            
+            if (lobbyError) {
+                console.error('Error fetching lobby:', lobbyError);
+                showNotification('Error fetching lobby: ' + lobbyError.message, 'error');
+                return;
+            }
+            
+            document.getElementById('round-select').value = lobby.round;
+            loadSeeds();
         
             const { data, error } = await supabase
                 .from('players')
@@ -317,6 +337,64 @@
                 subscribeToLobby(lobbyId);
             }
         }
+        
+        function loadSeeds() {
+            currentRound = document.getElementById('round-select').value;
+            bannedSeeds = new Set();
+            practiceSeeds = [...seeds[currentRound]];
+        
+            const seedImagesDiv = document.getElementById('seed-images');
+            seedImagesDiv.innerHTML = '';
+        
+            practiceSeeds.forEach(seed => {
+                const seedDiv = document.createElement('div');
+                seedDiv.classList.add('seed-image');
+                seedDiv.innerHTML = `
+                    <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
+                    <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})">Ban</button>
+                    <div class="seed-number">Seed: ${seed}</div>
+                `;
+                seedImagesDiv.appendChild(seedDiv);
+            });
+        
+            document.getElementById('notification').style.display = 'none';
+        }
+        
+        async function banSeed(lobbyId, seed) {
+            let { data: lobby, error } = await supabase
+                .from('lobbies')
+                .select('*')
+                .eq('id_text', lobbyId)
+                .single();
+            
+            if (error || !lobby) {
+                console.error('Error fetching lobby:', error);
+                showNotification('Error fetching lobby: ' + error.message, 'error');
+                return;
+            }
+            
+            if (lobby.current_player === 'player1') {
+                lobby.banned_seeds.push(seed);
+                lobby.current_player = 'player2';
+            } else {
+                lobby.banned_seeds.push(seed);
+                lobby.current_player = 'player1';
+            }
+            lobby.seeds = lobby.seeds.filter(s => s !== seed);
+        
+            const { error: updateError } = await supabase
+                .from('lobbies')
+                .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
+                .eq('id_text', lobbyId);
+            
+            if (updateError) {
+                console.error('Error updating lobby:', updateError);
+                showNotification('Error updating lobby: ' + updateError.message, 'error');
+            } else {
+                displayLobby(lobby, lobbyId);
+            }
+        }
+
         
         function subscribeToLobby(lobbyId) {
             supabase
@@ -334,39 +412,6 @@
                 })
                 .subscribe();
         }
-
-
-        async function banSeed(lobbyId, seed) {
-            let { data: lobby, error } = await supabase
-                .from('lobbies')
-                .select('*')
-                .eq('id_text', lobbyId)
-                .single();
-            if (error) {
-                console.error('Error fetching lobby:', error);
-                return;
-            }
-        
-            if (lobby.current_player === 'player1') {
-                lobby.banned_seeds.push(seed);
-                lobby.current_player = 'player2';
-            } else {
-                lobby.banned_seeds.push(seed);
-                lobby.current_player = 'player1';
-            }
-            lobby.seeds = lobby.seeds.filter(s => s !== seed);
-        
-            const { error: updateError } = await supabase
-                .from('lobbies')
-                .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
-                .eq('id_text', lobbyId);
-            if (updateError) {
-                console.error('Error updating lobby:', updateError);
-            } else {
-                displayLobby(lobby, lobbyId);
-            }
-        }
-
     
         function displayLobby(lobby, lobbyId) {
             document.getElementById('lobby').innerHTML = `
@@ -399,6 +444,7 @@
                 }
             }
         }
+
 
 
     </script>
