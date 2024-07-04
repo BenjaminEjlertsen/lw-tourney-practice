@@ -323,7 +323,7 @@
                 showNotification('Please enter your name.', 'error');
                 return;
             }
-            
+        
             const { data: lobby, error: lobbyError } = await supabase
                 .from('lobbies')
                 .select('*')
@@ -340,27 +340,41 @@
             loadSeeds(lobbyId);
         
             // Check if player already exists in the lobby
-            const { data: existingPlayers } = await supabase
+            const { data: existingPlayers, error: existingPlayersError } = await supabase
                 .from('players')
                 .select('*')
                 .eq('id_text', lobbyId)
                 .eq('name', playerName);
+        
+            if (existingPlayersError) {
+                console.error('Error checking existing players:', existingPlayersError);
+                showNotification('Error checking existing players: ' + existingPlayersError.message, 'error');
+                return;
+            }
         
             if (existingPlayers.length > 0) {
                 showNotification('Player with this name already exists in the lobby.', 'error');
                 return;
             }
         
-            const { data: players } = await supabase
+            const { data: players, error: playersError } = await supabase
                 .from('players')
                 .select('name')
                 .eq('id_text', lobbyId);
+        
+            if (playersError) {
+                console.error('Error fetching players:', playersError);
+                showNotification('Error fetching players: ' + playersError.message, 'error');
+                return;
+            }
         
             const { data, error } = await supabase
                 .from('players')
                 .insert([{ id_text: lobbyId, name: playerName }]);
             if (error) {
                 console.error('Error joining lobby:', error);
+                showNotification('Error joining lobby: ' + error.message, 'error');
+                return;
             } else {
                 if (players.length === 1) {
                     // This means the second player just joined, randomly pick the starting player
@@ -372,6 +386,7 @@
                     if (updateError) {
                         console.error('Error updating lobby:', updateError);
                         showNotification('Error updating lobby: ' + updateError.message, 'error');
+                        return;
                     } else {
                         const currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
                         showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
@@ -386,6 +401,7 @@
                 subscribeToLobby(lobbyId);
             }
         }
+
         function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
@@ -456,7 +472,6 @@
                 displayLobby(lobby, lobbyId);
             }
         }
-
         
         function subscribeToLobby(lobbyId) {
             supabase
@@ -479,6 +494,7 @@
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
         
+            // Fetch the current player's name
             const { data: players } = await supabase
                 .from('players')
                 .select('name')
