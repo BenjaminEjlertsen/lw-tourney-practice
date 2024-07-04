@@ -7,7 +7,7 @@
     <style>
        body { 
             font-family: Arial, sans-serif; 
-            background-color: #f0f0f0; 
+            background-color: #f4f4f4; 
             margin: 0; 
             padding: 0;
             display: flex;
@@ -16,12 +16,10 @@
             justify-content: center;
             min-height: 100vh;
         }
-        
         h1 { 
             color: #333; 
             margin-bottom: 20px;
         }
-        
         .container {
             background-color: white;
             border-radius: 8px;
@@ -32,7 +30,6 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        
         .notification {
             margin-bottom: 20px;
             padding: 10px;
@@ -40,65 +37,58 @@
             display: none;
             font-weight: bold;
         }
-        
         .notification.error {
             background-color: #f8d7da;
             color: #721c24;
         }
-        
         .notification.success {
             background-color: #d4edda;
             color: #155724;
         }
-        
         .input-group {
             display: flex;
-            justify-content: space-between;
-            gap: 20px;
+            justify-content: center;
+            gap: 10px;
             margin-bottom: 20px;
-            width: 100%;
         }
-        .input-group div {
+        .input-group.center {
+            justify-content: center;
+        }
+        .input-group-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex: 1;
         }
-        .input-group button, .input-group input {
-            width: 100%;
-            max-width: 200px;
-        }
-        .input-group .description {
+        .input-group-item .description {
             margin-top: 5px;
             font-size: 14px;
             color: #666;
         }
-
-        .input-group button {
+        .large-button {
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s;
         }
-        
-        .input-group button:hover {
+        .large-button:hover {
             background-color: #0056b3;
         }
-        
         .seed-images { 
             display: flex; 
             flex-wrap: wrap; 
             gap: 20px; 
             justify-content: center;
         }
-        
         .seed-image { 
             width: 45%; 
             position: relative; 
             margin-bottom: 20px;
         }
-        
         .seed-image img { 
             width: 100%; 
             height: auto; 
@@ -106,11 +96,9 @@
             cursor: pointer;
             transition: filter 0.3s ease;
         }
-        
         .seed-image img.grayscale {
             filter: grayscale(100%);
         }
-        
         .ban-button { 
             position: absolute; 
             top: 10px; 
@@ -123,7 +111,6 @@
             border-radius: 5px;
             font-size: 14px;
         }
-        
         .roll-button { 
             margin: 20px 0; 
             padding: 15px; 
@@ -135,11 +122,9 @@
             width: 100%;
             font-size: 18px;
         }
-        
         .roll-button:hover, .ban-button:hover {
             opacity: 0.8;
         }
-        
         select, option {
             padding: 10px;
             margin-top: 10px;
@@ -149,7 +134,6 @@
             border: 1px solid #ccc;
             font-size: 16px;
         }
-        
         .modal {
             display: none;
             position: fixed;
@@ -161,7 +145,6 @@
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.9);
         }
-        
         .modal-content {
             background-color: #fefefe;
             margin: auto;
@@ -170,69 +153,50 @@
             width: 90%;
             max-width: 1200px;
         }
-        
         .close {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-        
         .close:hover, .close:focus {
             color: white;
             text-decoration: none;
             cursor: pointer;
         }
-        
         .modal img {
             width: 100%;
             height: auto;
         }
-        
         .modal-seed {
             margin-bottom: 15px;
             font-size: 22px;
             font-weight: bold;
             color: white;
         }
-        
         .panzoom {
             cursor: grab;
         }
-        
-       .info-container {
+        .info-container {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
             gap: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            margin-bottom: 20px;
-        }
-        .lobby-info, .help-box {
-            width: 48%;
         }
         .lobby-info {
-            background-color: #fff;
-            padding: 20px;
-            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: 48%;
         }
-        .placeholder {
-            color: #888;
-            font-style: italic;
+        .help-box {
+            background-color: #fffbe6;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: 48%;
         }
 
-        .help-box {
-            background-color: #f1f1f1;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
 
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
@@ -247,37 +211,37 @@
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
-
-        <div class="input-group">
+    
+        <div class="input-group center">
             <input type="text" id="playerNameInput" placeholder="Enter Your Name">
         </div>
-       <div class="input-group">
-            <div>
-                <button onclick="createLobby()">Create Lobby</button>
+    
+        <div class="input-group">
+            <div class="input-group-item">
+                <button class="large-button" onclick="createLobby()">Create Lobby</button>
                 <p class="description">Create a new lobby and share the ID with your opponent.</p>
             </div>
-            <div>
+            <div class="input-group-item">
+                <button class="large-button" onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
                 <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
-                <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
                 <p class="description">Join an existing lobby by entering the Lobby ID.</p>
             </div>
         </div>
-        
+    
         <div class="info-container">
             <div class="lobby-info" id="lobby">
                 <h2>Lobby Info</h2>
                 <p class="placeholder">Create or join a lobby to see details here.</p>
             </div>
-
+    
             <div class="help-box">
                 <h2>Help</h2>
-                <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Lobby ID will auto generated. Send the lobby ID to your opponent.</p>
+                <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Lobby ID will be auto-generated. Send the lobby ID to your opponent.</p>
                 <p><strong>Join Lobby:</strong> Enter your name, type the lobby ID, and click "Join Lobby" to join an existing lobby.</p>
                 <p><strong>Banning Seeds:</strong> Once both players have joined, take turns to ban seeds. The player whose turn it is will be indicated. First to ban is picked randomly.</p>
                 <p><strong>Rolling Seeds:</strong> Use the "Roll a Seed" button to randomly select a seed for practice.</p>
             </div>
         </div>
-
     
         <div class="input-group">
             <label for="round-select">Select Round:</label>
@@ -294,6 +258,7 @@
         </div>
         <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     </div>
+
     
     <div id="myModal" class="modal">
         <div class="modal-content">
