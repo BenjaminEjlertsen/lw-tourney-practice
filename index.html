@@ -200,10 +200,20 @@
     
         function showNotification(message, type) {
             const notificationDiv = document.getElementById('notification');
+            if (!notificationDiv) {
+                console.error('Notification element not found');
+                return;
+            }
             notificationDiv.innerText = message;
             notificationDiv.className = `notification ${type}`;
             notificationDiv.style.display = 'block';
+        
+            // Keep the notification visible for 3 seconds before hiding it
+            setTimeout(() => {
+                notificationDiv.style.display = 'none';
+            }, 3000);
         }
+
     
         function loadSeeds() {
             currentRound = document.getElementById('round-select').value;
@@ -302,6 +312,7 @@
                 showNotification('Error creating lobby: ' + error.message, 'error');
             } else {
                 showNotification('Lobby created with ID: ' + lobbyId, 'success');
+                displayLobby(lobby, lobbyId);
                 joinLobby(lobbyId);
             }
         }
@@ -335,6 +346,7 @@
             if (error) {
                 console.error('Error joining lobby:', error);
             } else {
+                displayLobby(lobby, lobbyId);
                 subscribeToLobby(lobbyId);
             }
         }
