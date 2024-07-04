@@ -294,7 +294,7 @@
             if (error) {
                 console.error('Error creating lobby:', error);
             } else {
-                alert('Lobby created with ID: ' + lobbyId);
+                showNotification('Lobby created with ID: ' + lobbyId, 'success');
                 joinLobby(lobbyId);
             }
         }
@@ -302,7 +302,7 @@
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
             if (!playerName) {
-                alert('Please enter your name.');
+                showNotification('Please enter your name.', 'error');
                 return;
             }
         
@@ -315,7 +315,7 @@
                 subscribeToLobby(lobbyId);
             }
         }
-
+        
         function subscribeToLobby(lobbyId) {
             const lobbyChannel = supabase
                 .channel(`public:lobbies:id_text=eq.${lobbyId}`)
@@ -332,7 +332,6 @@
                 })
                 .subscribe();
         }
-
 
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
