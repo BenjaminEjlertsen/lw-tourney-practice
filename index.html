@@ -459,7 +459,7 @@
                 .subscribe();
         }
     
-        function displayLobby(lobby, lobbyId) {
+        async function displayLobby(lobby, lobbyId) {
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
         
