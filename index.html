@@ -645,17 +645,6 @@
             }
         }
 
-        
-            // Disable round selection if both players are in the lobby
-            document.getElementById('round-select').disabled = players.length >= 2;
-        
-            displayPlayers(lobbyId);
-            if (lobby.seeds.length === 1) {
-                showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
-            }
-        }
-
-
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
                 .from('players')
