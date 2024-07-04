@@ -209,9 +209,9 @@
             notificationDiv.style.display = 'block';
         
             // Keep the notification visible for 3 seconds before hiding it
-            setTimeout(() => {
-                notificationDiv.style.display = 'none';
-            }, 3000);
+            //setTimeout(() => {
+            //    notificationDiv.style.display = 'none';
+            //}, 3000);
         }
 
     
@@ -316,8 +316,6 @@
                 joinLobby(lobbyId);
             }
         }
-
-
         
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
@@ -338,6 +336,12 @@
                 return;
             }
             
+            if (lobby.players && lobby.players.length === 1) {
+                const firstPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
+                lobby.current_player = firstPlayer;
+                showNotification(`First player to ban a seed is: ${firstPlayer}`, 'success');
+            }
+        
             document.getElementById('round-select').value = lobby.round;
             loadSeeds(lobbyId);
         
@@ -347,6 +351,7 @@
             if (error) {
                 console.error('Error joining lobby:', error);
             } else {
+                showNotification(`Joined lobby ${lobbyId} as ${playerName}`, 'success');
                 displayLobby(lobby, lobbyId);
                 subscribeToLobby(lobbyId);
             }
@@ -374,8 +379,7 @@
         
             document.getElementById('notification').style.display = 'none';
         }
-        
-                
+             
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
@@ -389,6 +393,12 @@
                 return;
             }
             
+            const currentPlayer = document.getElementById('playerNameInput').value;
+            if (lobby.current_player !== currentPlayer) {
+                showNotification('It is not your turn to ban a seed.', 'error');
+                return;
+            }
+        
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
             
@@ -414,7 +424,6 @@
             }
         }
 
-
         
         function subscribeToLobby(lobbyId) {
             supabase
@@ -434,22 +443,31 @@
         }
     
         function displayLobby(lobby, lobbyId) {
+            const currentPlayer = document.getElementById('playerNameInput').value;
+            const isCurrentTurn = lobby.current_player === currentPlayer;
+        
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
             
             document.getElementById('lobby').innerHTML = `
-                <div>Lobby ID: ${lobbyId}</div>
-                <div>Current Player: ${lobby.current_player}</div>
+                <div>Lobby ID: ${lobbyId} <- Copy and give to opponent</div>
+                <div>Current Player to Ban: ${lobby.current_player}</div>
+                <div>${isCurrentTurn ? "It's your turn to ban a seed." : "Waiting for the other player to ban a seed."}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
-                ${lobby.seeds.map(seed => `<button onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
+                ${lobby.seeds.map(seed => `
+                    <div class="seed-image" style="filter: ${lobby.banned_seeds.includes(seed) ? 'grayscale(100%)' : 'none'};">
+                        <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
+                        <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})" ${!isCurrentTurn ? 'disabled' : ''}>Ban</button>
+                        <div class="seed-number">Seed: ${seed}</div>
+                    </div>
+                `).join('')}
             `;
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
-
 
         
         async function displayPlayers(lobbyId) {
