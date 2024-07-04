@@ -305,6 +305,7 @@
                 joinLobby(lobbyId);
             }
         }
+
         
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
@@ -326,7 +327,7 @@
             }
             
             document.getElementById('round-select').value = lobby.round;
-            loadSeeds();
+            loadSeeds(lobbyId);
         
             const { data, error } = await supabase
                 .from('players')
@@ -337,8 +338,9 @@
                 subscribeToLobby(lobbyId);
             }
         }
+
         
-        function loadSeeds() {
+        function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
             practiceSeeds = [...seeds[currentRound]];
@@ -360,6 +362,7 @@
             document.getElementById('notification').style.display = 'none';
         }
         
+                
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
