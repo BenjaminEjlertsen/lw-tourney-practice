@@ -150,10 +150,10 @@
 <body>
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
-        <div class="notification" id="notification"></div>
+        <div class="notification" id_text="notification"></div>
         <div>
             <button onclick="createLobby()">Create Lobby</button>
-            <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
+            <input type="text" id_text="lobbyIdInput" placeholder="Enter Lobby ID">
             <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
         </div>
         <div id="lobby"></div>
@@ -285,7 +285,7 @@
             const { data, error } = await supabase
                 .from('lobbies')
                 .insert([{ 
-                    id: lobbyId, 
+                    id_text: lobbyId, 
                     seeds: [51706, 375060, 706131, 824517, 917340], 
                     banned_seeds: [], 
                     current_player: 'player1' 
@@ -302,7 +302,7 @@
             const { data: lobby, error } = await supabase
                 .from('lobbies')
                 .select('*')
-                .eq('id', lobbyId)
+                .eq('id_text', lobbyId)
                 .single();
             if (error) {
                 console.error('Error joining lobby:', error);
@@ -315,7 +315,7 @@
             let { data: lobby, error } = await supabase
                 .from('lobbies')
                 .select('*')
-                .eq('id', lobbyId)
+                .eq('id_text', lobbyId)
                 .single();
             if (error) {
                 console.error('Error fetching lobby:', error);
@@ -334,7 +334,7 @@
             const { error: updateError } = await supabase
                 .from('lobbies')
                 .update({ seeds: lobby.seeds, banned_seeds: lobby.banned_seeds, current_player: lobby.current_player })
-                .eq('id', lobbyId);
+                .eq('id_text', lobbyId);
             if (updateError) {
                 console.error('Error updating lobby:', updateError);
             } else {
