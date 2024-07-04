@@ -184,30 +184,30 @@
 
     <script>
         const seeds = {
-            "1": [51706, 375060, 706131, 824517, 917340],
-            "2": [346668, 741963, 851742, 933044, 820477],
-            "3": [525637, 634611, 674629, 668659, 889078]
+        "1": [51706, 375060, 706131, 824517, 917340],
+        "2": [346668, 741963, 851742, 933044, 820477],
+        "3": [525637, 634611, 674629, 668659, 889078]
         };
         let bannedSeeds = new Set();
         let practiceSeeds = [];
         let currentRound = "1";
         let panzoomInstance;
-
+    
         function showNotification(message, type) {
             const notificationDiv = document.getElementById('notification');
             notificationDiv.innerText = message;
             notificationDiv.className = `notification ${type}`;
             notificationDiv.style.display = 'block';
         }
-
+    
         function loadSeeds() {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
             practiceSeeds = [...seeds[currentRound]];
-
+    
             const seedImagesDiv = document.getElementById('seed-images');
             seedImagesDiv.innerHTML = '';
-
+    
             practiceSeeds.forEach(seed => {
                 const seedDiv = document.createElement('div');
                 seedDiv.classList.add('seed-image');
@@ -218,26 +218,26 @@
                 `;
                 seedImagesDiv.appendChild(seedDiv);
             });
-
+    
             document.getElementById('notification').style.display = 'none';
         }
-
+    
         function banSeed(seed) {
             if (bannedSeeds.has(seed)) return;
             if (bannedSeeds.size >= 2) {
                 showNotification("You can only ban 2 seeds.", "error");
                 return;
             }
-
+    
             bannedSeeds.add(seed);
             document.querySelector(`.seed-image img[alt="Seed ${seed}"]`).parentNode.style.display = 'none';
             practiceSeeds = practiceSeeds.filter(s => s !== seed);
-
+    
             if (bannedSeeds.size === 2) {
                 showNotification("Two seeds have been banned.", "success");
             }
         }
-
+    
         function rollSeed() {
             if (practiceSeeds.length === 0) {
                 showNotification("No seeds left to practice.", "error");
@@ -246,40 +246,40 @@
             const randomSeed = practiceSeeds[Math.floor(Math.random() * practiceSeeds.length)];
             showNotification(`Practice on seed: ${randomSeed}`, "success");
         }
-
+    
         function openModal(seed) {
             const modalImage = document.getElementById('modal-image');
             modalImage.src = `path_to_images/${seed}.png`;
             document.getElementById('modal-seed').innerText = `Seed: ${seed}`;
             document.getElementById('myModal').style.display = "block";
-
+    
             if (panzoomInstance) {
                 panzoomInstance.dispose();
             }
-
+    
             panzoomInstance = Panzoom(modalImage, {
                 maxScale: 5,
                 contain: 'outside'
             });
-
+    
             modalImage.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWheel);
         }
-
+    
         function closeModal() {
             document.getElementById('myModal').style.display = "none";
             if (panzoomInstance) {
                 panzoomInstance.dispose();
             }
         }
-
+    
         window.onload = loadSeeds;
-
+    
         window.onclick = function(event) {
             if (event.target == document.getElementById('myModal')) {
                 closeModal();
             }
         }
-        
+    
         async function createLobby() {
             const lobbyId = Math.random().toString(36).substr(2, 9);
             const { data, error } = await supabase
@@ -321,7 +321,7 @@
                 console.error('Error fetching lobby:', error);
                 return;
             }
-            
+    
             if (lobby.current_player === 'player1') {
                 lobby.banned_seeds.push(seed);
                 lobby.current_player = 'player2';
