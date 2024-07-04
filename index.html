@@ -47,7 +47,8 @@
         }
         .input-group {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -60,6 +61,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-bottom: 20px;
         }
         
         .input-group-item input[type="text"] {
@@ -68,8 +70,11 @@
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 16px;
+            width: 100%;
+            max-width: 300px; /* Adjust this as per your preference */
+            box-sizing: border-box; /* Ensures padding is included in the element's total width and height */
         }
-        
+                
         input[type="text"] {
             padding: 10px;
             border-radius: 5px;
@@ -109,6 +114,14 @@
         }
         .large-button:hover {
             background-color: #0056b3;
+        }
+        .narrow select {
+            width: auto;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            margin-bottom: 20px;
         }
         .seed-images { 
             display: flex; 
@@ -256,11 +269,11 @@
         <div class="input-group">
             <div class="input-group-item">
                 <button class="large-button" onclick="createLobby()">Create Lobby</button>
-                <p class="description">Create a new lobby and share the ID with your opponent.</p>
+                <p class="description">Create a new lobby and share the generated ID with your opponent.</p>
             </div>
             <div class="input-group-item">
-                <button class="large-button" onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
                 <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
+                <button class="large-button" onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
                 <p class="description">Join an existing lobby by entering the Lobby ID.</p>
             </div>
         </div>
@@ -280,7 +293,7 @@
             </div>
         </div>
     
-        <div class="input-group">
+        <div class="input-group narrow">
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
                 <option value="" disabled selected>Select a round</option>
@@ -295,7 +308,6 @@
         </div>
         <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     </div>
-
     
     <div id="myModal" class="modal">
         <div class="modal-content">
@@ -306,7 +318,6 @@
             </div>
         </div>
     </div>
-
 
     <script>
         const seeds = {
