@@ -141,7 +141,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        import { createClient } from '@supabase/supabase-js'
+        // Initialize Supabase client
+        const { createClient } = window.supabase;
         const supabase = createClient('https://todkxtxdbuqilmtwtwyk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvZGt4dHhkYnVxaWxtdHd0d3lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc4NDcxMjAsImV4cCI6MjAzMzQyMzEyMH0.8I_WtWE0W8NHSKlotC3yGjjggxXuwck3A7UnOQv7MbA');
     </script>
     
