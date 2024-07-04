@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Tournament Seed Selector</title>
     <style>
-        body { 
+       body { 
             font-family: Arial, sans-serif; 
-            background-color: #f4f4f4; 
+            background-color: #f0f0f0; 
             margin: 0; 
             padding: 0;
             display: flex;
@@ -16,10 +16,12 @@
             justify-content: center;
             min-height: 100vh;
         }
+        
         h1 { 
             color: #333; 
             margin-bottom: 20px;
         }
+        
         .container {
             background-color: white;
             border-radius: 8px;
@@ -30,6 +32,7 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        
         .notification {
             margin-bottom: 20px;
             padding: 10px;
@@ -37,46 +40,56 @@
             display: none;
             font-weight: bold;
         }
+        
         .notification.error {
             background-color: #f8d7da;
             color: #721c24;
         }
+        
         .notification.success {
             background-color: #d4edda;
             color: #155724;
         }
+        
         .input-group {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-bottom: 20px;
         }
+        
         .input-group input, .input-group button {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 16px;
         }
+        
         .input-group button {
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+        
         .input-group button:hover {
             background-color: #0056b3;
         }
+        
         .seed-images { 
             display: flex; 
             flex-wrap: wrap; 
             gap: 20px; 
             justify-content: center;
         }
+        
         .seed-image { 
             width: 45%; 
             position: relative; 
             margin-bottom: 20px;
         }
+        
         .seed-image img { 
             width: 100%; 
             height: auto; 
@@ -84,9 +97,11 @@
             cursor: pointer;
             transition: filter 0.3s ease;
         }
+        
         .seed-image img.grayscale {
             filter: grayscale(100%);
         }
+        
         .ban-button { 
             position: absolute; 
             top: 10px; 
@@ -99,6 +114,7 @@
             border-radius: 5px;
             font-size: 14px;
         }
+        
         .roll-button { 
             margin: 20px 0; 
             padding: 15px; 
@@ -110,9 +126,11 @@
             width: 100%;
             font-size: 18px;
         }
+        
         .roll-button:hover, .ban-button:hover {
             opacity: 0.8;
         }
+        
         select, option {
             padding: 10px;
             margin-top: 10px;
@@ -122,6 +140,7 @@
             border: 1px solid #ccc;
             font-size: 16px;
         }
+        
         .modal {
             display: none;
             position: fixed;
@@ -133,6 +152,7 @@
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.9);
         }
+        
         .modal-content {
             background-color: #fefefe;
             margin: auto;
@@ -141,29 +161,52 @@
             width: 90%;
             max-width: 1200px;
         }
+        
         .close {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
+        
         .close:hover, .close:focus {
             color: white;
             text-decoration: none;
             cursor: pointer;
         }
+        
         .modal img {
             width: 100%;
             height: auto;
         }
+        
         .modal-seed {
             margin-bottom: 15px;
             font-size: 22px;
             font-weight: bold;
             color: white;
         }
+        
         .panzoom {
             cursor: grab;
+        }
+        
+        .lobby-info, .help-box {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .help-box h2, .lobby-info h2 {
+            margin-top: 0;
+        }
+        
+        .help-box p, .lobby-info p {
+            margin: 10px 0;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
@@ -178,6 +221,7 @@
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
+        
         <div class="input-group">
             <input type="text" id="playerNameInput" placeholder="Enter Your Name">
         </div>
@@ -186,10 +230,19 @@
             <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
             <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
         </div>
-        <div id="lobby"></div>
-        <div id="players-container">
-            <div>Players: <span id="players"></span></div>
+        
+        <div class="lobby-info" id="lobby">
+            <!-- Lobby details will be dynamically inserted here -->
         </div>
+    
+        <div class="help-box">
+            <h2>Help</h2>
+            <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Select a round before creating the lobby.</p>
+            <p><strong>Join Lobby:</strong> Enter your name, type the lobby ID, and click "Join Lobby" to join an existing lobby.</p>
+            <p><strong>Banning Seeds:</strong> Once both players have joined, take turns to ban seeds. The player whose turn it is will be indicated.</p>
+            <p><strong>Rolling Seeds:</strong> Use the "Roll a Seed" button to randomly select a seed for practice.</p>
+        </div>
+    
         <div class="input-group">
             <label for="round-select">Select Round:</label>
             <select id="round-select" onchange="loadSeeds()">
@@ -199,12 +252,13 @@
                 <option value="3">Round 3</option>
             </select>
         </div>
+    
         <div class="seed-images" id="seed-images">
             <!-- Seed images will be inserted here -->
         </div>
         <button class="roll-button" onclick="rollSeed()">Roll a Seed</button>
     </div>
-
+    
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -214,6 +268,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
         const seeds = {
@@ -381,6 +436,7 @@
                 showNotification('Error joining lobby: ' + error.message, 'error');
                 return;
             } else {
+                showNotification(`${playerName} has joined the lobby.`, 'success');
                 if (players.length === 1) {
                     // This means the second player just joined, randomly pick the starting player
                     lobby.current_player = (Math.random() < 0.5) ? 'player1' : 'player2';
@@ -413,6 +469,7 @@
                 subscribeToLobby(lobbyId);
             }
         }
+
 
         function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
@@ -513,15 +570,17 @@
             supabase
                 .channel(`public:players:id_text=eq.${lobbyId}`)
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'players', filter: `id_text=eq.${lobbyId}` }, payload => {
+                    showNotification(`${payload.new.name} has joined the lobby.`, 'success');
                     displayPlayers(lobbyId);
                 })
                 .subscribe();
         }
+
     
         async function displayLobby(lobby, lobbyId) {
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
-        
+            
             // Fetch the current player's name
             const { data: players } = await supabase
                 .from('players')
@@ -537,20 +596,19 @@
             const isCurrentPlayer = (playerName === currentPlayerName);
         
             document.getElementById('lobby').innerHTML = `
-                <div>Lobby ID: ${lobbyId}</div>
-                <div>Current Player to Ban: ${currentPlayerName}</div>
-                <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
-                <div>Available Seeds: ${availableSeeds}</div>
-                <div>Banned Seeds: ${bannedSeeds}</div>
-                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
+                <h2>Lobby Info</h2>
+                <p><strong>Lobby ID:</strong> ${lobbyId}</p>
+                <p><strong>Players:</strong> ${players.map(player => player.name).join(', ')}</p>
+                <p><strong>Current Player to Ban:</strong> ${currentPlayerName}</p>
+                <p><strong>Status:</strong> ${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</p>
             `;
         
             document.querySelectorAll('.seed-image img').forEach(img => {
                 const seedNumber = parseInt(img.alt.split(' ')[1]);
                 if (lobby.banned_seeds.includes(seedNumber)) {
-                    img.style.filter = 'grayscale(100%)';
+                    img.classList.add('grayscale');
                 } else {
-                    img.style.filter = 'none';
+                    img.classList.remove('grayscale');
                 }
             });
         
@@ -562,6 +620,7 @@
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
+
 
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
