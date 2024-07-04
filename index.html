@@ -210,9 +210,9 @@
             notificationDiv.style.display = 'block';
         
             // Keep the notification visible for 3 seconds before hiding it
-            setTimeout(() => {
-                notificationDiv.style.display = 'none';
-            }, 3000);
+            //setTimeout(() => {
+            //    notificationDiv.style.display = 'none';
+            //}, 3000);
         }
 
         function initializeState() {
@@ -360,13 +360,13 @@
                 .select('*')
                 .eq('id_text', lobbyId)
                 .single();
-            
+        
             if (lobbyError) {
                 console.error('Error fetching lobby:', lobbyError);
                 showNotification('Error fetching lobby: ' + lobbyError.message, 'error');
                 return;
             }
-            
+        
             document.getElementById('round-select').value = lobby.round;
             loadSeeds(lobbyId);
         
@@ -419,8 +419,15 @@
                         showNotification('Error updating lobby: ' + updateError.message, 'error');
                         return;
                     } else {
-                        const currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
-                        showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
+                        const updatedPlayers = await supabase
+                            .from('players')
+                            .select('name')
+                            .eq('id_text', lobbyId);
+                        
+                        if (updatedPlayers.data.length > 1) {
+                            const currentPlayerName = updatedPlayers.data[(lobby.current_player === 'player1' ? 0 : 1)].name;
+                            showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
+                        }
                     }
                 }
                 const updatedLobby = await supabase
