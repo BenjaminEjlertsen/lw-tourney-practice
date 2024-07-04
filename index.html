@@ -209,9 +209,9 @@
             notificationDiv.style.display = 'block';
         
             // Keep the notification visible for 3 seconds before hiding it
-            //setTimeout(() => {
-            //    notificationDiv.style.display = 'none';
-            //}, 3000);
+            setTimeout(() => {
+                notificationDiv.style.display = 'none';
+            }, 3000);
         }
 
     
@@ -323,7 +323,7 @@
                 showNotification('Please enter your name.', 'error');
                 return;
             }
-        
+            
             const { data: lobby, error: lobbyError } = await supabase
                 .from('lobbies')
                 .select('*')
@@ -336,14 +336,13 @@
                 return;
             }
             
-            if (lobby.players && lobby.players.length === 1) {
-                const firstPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
-                lobby.current_player = firstPlayer;
-                showNotification(`First player to ban a seed is: ${firstPlayer}`, 'success');
-            }
-        
             document.getElementById('round-select').value = lobby.round;
             loadSeeds(lobbyId);
+        
+            const { data: players } = await supabase
+                .from('players')
+                .select('name')
+                .eq('id_text', lobbyId);
         
             const { data, error } = await supabase
                 .from('players')
@@ -351,7 +350,20 @@
             if (error) {
                 console.error('Error joining lobby:', error);
             } else {
-                showNotification(`Joined lobby ${lobbyId} as ${playerName}`, 'success');
+                if (players.length === 1) {
+                    // This means the second player just joined, randomly pick the starting player
+                    lobby.current_player = (Math.random() < 0.5) ? 'player1' : 'player2';
+                    const { error: updateError } = await supabase
+                        .from('lobbies')
+                        .update({ current_player: lobby.current_player })
+                        .eq('id_text', lobbyId);
+                    if (updateError) {
+                        console.error('Error updating lobby:', updateError);
+                        showNotification('Error updating lobby: ' + updateError.message, 'error');
+                    } else {
+                        showNotification(`Randomly picked ${players[(lobby.current_player === 'player1' ? 0 : 1)].name} to ban first.`, 'success');
+                    }
+                }
                 displayLobby(lobby, lobbyId);
                 subscribeToLobby(lobbyId);
             }
@@ -379,7 +391,7 @@
         
             document.getElementById('notification').style.display = 'none';
         }
-             
+                
         async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
@@ -393,22 +405,27 @@
                 return;
             }
             
-            const currentPlayer = document.getElementById('playerNameInput').value;
-            if (lobby.current_player !== currentPlayer) {
-                showNotification('It is not your turn to ban a seed.', 'error');
+            const playerName = document.getElementById('playerNameInput').value;
+            const { data: players } = await supabase
+                .from('players')
+                .select('name')
+                .eq('id_text', lobbyId);
+        
+            let currentPlayerName = 'Unknown';
+            if (players && players.length > 0) {
+                currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
+            }
+        
+            if (playerName !== currentPlayerName) {
+                showNotification("It's not your turn to ban.", "error");
                 return;
             }
         
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
             
-            if (lobby.current_player === 'player1') {
-                lobby.banned_seeds.push(seed);
-                lobby.current_player = 'player2';
-            } else {
-                lobby.banned_seeds.push(seed);
-                lobby.current_player = 'player1';
-            }
+            lobby.banned_seeds.push(seed);
+            lobby.current_player = (lobby.current_player === 'player1' ? 'player2' : 'player1');
             lobby.seeds = lobby.seeds.filter(s => s !== seed);
         
             const { error: updateError } = await supabase
@@ -443,33 +460,46 @@
         }
     
         function displayLobby(lobby, lobbyId) {
-            const currentPlayer = document.getElementById('playerNameInput').value;
-            const isCurrentTurn = lobby.current_player === currentPlayer;
-        
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
+        
+            const { data: players } = await supabase
+                .from('players')
+                .select('name')
+                .eq('id_text', lobbyId);
             
+            let currentPlayerName = 'Unknown';
+            if (players && players.length > 0) {
+                currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
+            }
+        
+            const playerName = document.getElementById('playerNameInput').value;
+            const isCurrentPlayer = (playerName === currentPlayerName);
+        
             document.getElementById('lobby').innerHTML = `
-                <div>Lobby ID: ${lobbyId} <- Copy and give to opponent</div>
-                <div>Current Player to Ban: ${lobby.current_player}</div>
-                <div>${isCurrentTurn ? "It's your turn to ban a seed." : "Waiting for the other player to ban a seed."}</div>
+                <div>Lobby ID: ${lobbyId}</div>
+                <div>Current Player to Ban: ${currentPlayerName}</div>
+                <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
-                ${lobby.seeds.map(seed => `
-                    <div class="seed-image" style="filter: ${lobby.banned_seeds.includes(seed) ? 'grayscale(100%)' : 'none'};">
-                        <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
-                        <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})" ${!isCurrentTurn ? 'disabled' : ''}>Ban</button>
-                        <div class="seed-number">Seed: ${seed}</div>
-                    </div>
-                `).join('')}
+                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
+        
+            document.querySelectorAll('.seed-image img').forEach(img => {
+                const seedNumber = parseInt(img.alt.split(' ')[1]);
+                if (lobby.banned_seeds.includes(seedNumber)) {
+                    img.style.filter = 'grayscale(100%)';
+                } else {
+                    img.style.filter = 'none';
+                }
+            });
+        
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
 
-        
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
                 .from('players')
@@ -486,8 +516,6 @@
                 }
             }
         }
-
-
 
     </script>
 </body>
