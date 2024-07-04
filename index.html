@@ -53,18 +53,27 @@
         
         .input-group {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 20px;
             margin-bottom: 20px;
+            width: 100%;
         }
-        
-        .input-group input, .input-group button {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
+        .input-group div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
         }
-        
+        .input-group button, .input-group input {
+            width: 100%;
+            max-width: 200px;
+        }
+        .input-group .description {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
         .input-group button {
             background-color: #007bff;
             color: white;
@@ -191,23 +200,35 @@
             cursor: grab;
         }
         
-        .lobby-info, .help-box {
+       .info-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .lobby-info, .help-box {
+            width: 48%;
+        }
+        .lobby-info {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-            width: 100%;
         }
-        
-        .help-box h2, .lobby-info h2 {
-            margin-top: 0;
+        .help-box {
+            background-color: #f1f1f1;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        
-        .help-box p, .lobby-info p {
-            margin: 10px 0;
-        }
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.0/panzoom.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -222,26 +243,31 @@
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
         
-        <div class="input-group">
-            <input type="text" id="playerNameInput" placeholder="Enter Your Name">
-        </div>
-        <div class="input-group">
-            <button onclick="createLobby()">Create Lobby</button>
-            <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
-            <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
+       <div class="input-group">
+            <div>
+                <button onclick="createLobby()">Create Lobby</button>
+                <p class="description">Create a new lobby and share the ID with your opponent.</p>
+            </div>
+            <div>
+                <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
+                <button onclick="joinLobby(document.getElementById('lobbyIdInput').value)">Join Lobby</button>
+                <p class="description">Join an existing lobby by entering the Lobby ID.</p>
+            </div>
         </div>
         
-        <div class="lobby-info" id="lobby">
-            <!-- Lobby details will be dynamically inserted here -->
+        <div class="info-container">
+            <div class="lobby-info" id="lobby">
+                <!-- Lobby details will be dynamically inserted here -->
+            </div>
+            <div class="help-box">
+                <h2>Help</h2>
+                <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Lobby ID will auto generated. Send the lobby ID to your opponent.</p>
+                <p><strong>Join Lobby:</strong> Enter your name, type the lobby ID, and click "Join Lobby" to join an existing lobby.</p>
+                <p><strong>Banning Seeds:</strong> Once both players have joined, take turns to ban seeds. The player whose turn it is will be indicated. First to ban is picked randomly.</p>
+                <p><strong>Rolling Seeds:</strong> Use the "Roll a Seed" button to randomly select a seed for practice.</p>
+            </div>
         </div>
-    
-        <div class="help-box">
-            <h2>Help</h2>
-            <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Select a round before creating the lobby.</p>
-            <p><strong>Join Lobby:</strong> Enter your name, type the lobby ID, and click "Join Lobby" to join an existing lobby.</p>
-            <p><strong>Banning Seeds:</strong> Once both players have joined, take turns to ban seeds. The player whose turn it is will be indicated.</p>
-            <p><strong>Rolling Seeds:</strong> Use the "Roll a Seed" button to randomly select a seed for practice.</p>
-        </div>
+
     
         <div class="input-group">
             <label for="round-select">Select Round:</label>
