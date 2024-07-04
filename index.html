@@ -339,6 +339,18 @@
             document.getElementById('round-select').value = lobby.round;
             loadSeeds(lobbyId);
         
+            // Check if player already exists in the lobby
+            const { data: existingPlayers } = await supabase
+                .from('players')
+                .select('*')
+                .eq('id_text', lobbyId)
+                .eq('name', playerName);
+        
+            if (existingPlayers.length > 0) {
+                showNotification('Player with this name already exists in the lobby.', 'error');
+                return;
+            }
+        
             const { data: players } = await supabase
                 .from('players')
                 .select('name')
@@ -361,15 +373,19 @@
                         console.error('Error updating lobby:', updateError);
                         showNotification('Error updating lobby: ' + updateError.message, 'error');
                     } else {
-                        showNotification(`Randomly picked ${players[(lobby.current_player === 'player1' ? 0 : 1)].name} to ban first.`, 'success');
+                        const currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
+                        showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
                     }
                 }
-                displayLobby(lobby, lobbyId);
+                const updatedLobby = await supabase
+                    .from('lobbies')
+                    .select('*')
+                    .eq('id_text', lobbyId)
+                    .single();
+                displayLobby(updatedLobby.data, lobbyId);
                 subscribeToLobby(lobbyId);
             }
         }
-
-        
         function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
             bannedSeeds = new Set();
