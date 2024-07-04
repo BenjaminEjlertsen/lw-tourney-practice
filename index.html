@@ -221,6 +221,11 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        .placeholder {
+            color: #888;
+            font-style: italic;
+        }
+
         .help-box {
             background-color: #f1f1f1;
             padding: 20px;
@@ -242,7 +247,10 @@
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
         <div class="notification" id="notification"></div>
-        
+
+        <div class="input-group">
+            <input type="text" id="playerNameInput" placeholder="Enter Your Name">
+        </div>
        <div class="input-group">
             <div>
                 <button onclick="createLobby()">Create Lobby</button>
@@ -257,8 +265,10 @@
         
         <div class="info-container">
             <div class="lobby-info" id="lobby">
-                <!-- Lobby details will be dynamically inserted here -->
+                <h2>Lobby Info</h2>
+                <p class="placeholder">Create or join a lobby to see details here.</p>
             </div>
+
             <div class="help-box">
                 <h2>Help</h2>
                 <p><strong>Create Lobby:</strong> Enter your name and click "Create Lobby" to start a new lobby. Lobby ID will auto generated. Send the lobby ID to your opponent.</p>
@@ -606,7 +616,7 @@
         async function displayLobby(lobby, lobbyId) {
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
-            
+        
             // Fetch the current player's name
             const { data: players } = await supabase
                 .from('players')
@@ -621,12 +631,15 @@
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
         
-            document.getElementById('lobby').innerHTML = `
+            const lobbyDiv = document.getElementById('lobby');
+            lobbyDiv.innerHTML = `
                 <h2>Lobby Info</h2>
-                <p><strong>Lobby ID:</strong> ${lobbyId}</p>
-                <p><strong>Players:</strong> ${players.map(player => player.name).join(', ')}</p>
-                <p><strong>Current Player to Ban:</strong> ${currentPlayerName}</p>
-                <p><strong>Status:</strong> ${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</p>
+                <div>Lobby ID: ${lobbyId}</div>
+                <div>Current Player to Ban: ${currentPlayerName}</div>
+                <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
+                <div>Available Seeds: ${availableSeeds}</div>
+                <div>Banned Seeds: ${bannedSeeds}</div>
+                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
         
             document.querySelectorAll('.seed-image img').forEach(img => {
@@ -637,6 +650,16 @@
                     img.classList.remove('grayscale');
                 }
             });
+        
+            // Disable round selection if both players are in the lobby
+            document.getElementById('round-select').disabled = players.length >= 2;
+        
+            displayPlayers(lobbyId);
+            if (lobby.seeds.length === 1) {
+                showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
+            }
+        }
+
         
             // Disable round selection if both players are in the lobby
             document.getElementById('round-select').disabled = players.length >= 2;
