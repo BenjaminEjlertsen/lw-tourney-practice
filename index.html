@@ -230,33 +230,6 @@
             initializeState();
         };
         
-        function loadSeeds() {
-            currentRound = document.getElementById('round-select').value;
-            if (!currentRound || !seeds[currentRound]) {
-                console.warn('Round not selected or invalid.');
-                return;
-            }
-            
-            bannedSeeds = new Set();
-            practiceSeeds = [...seeds[currentRound]];
-        
-            const seedImagesDiv = document.getElementById('seed-images');
-            seedImagesDiv.innerHTML = '';
-        
-            practiceSeeds.forEach(seed => {
-                const seedDiv = document.createElement('div');
-                seedDiv.classList.add('seed-image');
-                seedDiv.innerHTML = `
-                    <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
-                    <button class="ban-button" onclick="banSeed('${currentRound}', ${seed})">Ban</button>
-                    <div class="seed-number">Seed: ${seed}</div>
-                `;
-                seedImagesDiv.appendChild(seedDiv);
-            });
-        
-            document.getElementById('notification').style.display = 'none';
-        }
-    
         function openModal(seed) {
             const modalImage = document.getElementById('modal-image');
             modalImage.src = `path_to_images/${seed}.png`;
@@ -414,7 +387,7 @@
             }
         }
 
-        function loadSeeds() {
+        function loadSeeds(lobbyId) {
             currentRound = document.getElementById('round-select').value;
             if (!currentRound || !seeds[currentRound]) {
                 console.warn('Round not selected or invalid.');
@@ -432,7 +405,7 @@
                 seedDiv.classList.add('seed-image');
                 seedDiv.innerHTML = `
                     <img src="path_to_images/${seed}.png" alt="Seed ${seed}" onclick="openModal(${seed})">
-                    <button class="ban-button" onclick="banSeed('${currentRound}', ${seed})">Ban</button>
+                    <button class="ban-button" onclick="banSeed('${lobbyId}', ${seed})">Ban</button>
                     <div class="seed-number">Seed: ${seed}</div>
                 `;
                 seedImagesDiv.appendChild(seedDiv);
@@ -440,7 +413,7 @@
         
             document.getElementById('notification').style.display = 'none';
         }
-   
+           
        async function banSeed(lobbyId, seed) {
             let { data: lobby, error } = await supabase
                 .from('lobbies')
@@ -500,7 +473,7 @@
                 displayLobby(lobby, lobbyId);
             }
         }
-        
+                
         function subscribeToLobby(lobbyId) {
             supabase
                 .channel(`public:lobbies:id_text=eq.${lobbyId}`)
@@ -562,8 +535,6 @@
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
-
-
 
         async function displayPlayers(lobbyId) {
             const { data: players, error } = await supabase
