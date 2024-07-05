@@ -381,6 +381,7 @@
             bannedSeeds = new Set();
             practiceSeeds = [];
             currentRound = "";
+            document.getElementById('round-select').disabled = false
             document.getElementById('round-select').value = "";
             document.getElementById('seed-images').innerHTML = '';
             document.getElementById('lobby').innerHTML = '';
@@ -495,6 +496,11 @@
         
                 if (existingPlayers.length > 0) {
                     showNotification('Player with this name already exists in the lobby.', 'error');
+                    return;
+                }
+
+                if (players.length >= 2) {
+                    showNotification('Lobby is full.', 'error');
                     return;
                 }
         
@@ -735,7 +741,7 @@
                 }
             });
         
-            document.getElementById('round-select').disabled = players.length >= 2;
+            document.getElementById('round-select').disabled = true
             
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
