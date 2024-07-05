@@ -543,7 +543,6 @@
             }
         }
 
-
         function loadSeeds(lobbyId = null) {
             currentRound = document.getElementById('round-select').value;
 
@@ -675,11 +674,12 @@
             
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
-            
-            if (isCurrentPlayer) {
-                showNotification('Your turn to ban!', 'success');
+        
+            let turnInfo = '';
+            if (players.length > 1) {
+                turnInfo = isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...';
             } else {
-                showNotification('Waiting for the other player to ban...', 'info');
+                turnInfo = 'Waiting for another player to join...';
             }
         
             const lobbyDiv = document.getElementById('lobby');
@@ -687,9 +687,10 @@
                 <h2>Lobby Info</h2>
                 <div>Lobby ID: ${lobbyId}</div>
                 <div>Current Player to Ban: ${currentPlayerName}</div>
+                <div>${turnInfo}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
-                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
+                ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || players.length < 2 || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
             `;
         
             document.querySelectorAll('.seed-image img').forEach(img => {
