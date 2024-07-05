@@ -509,27 +509,7 @@
                 showNotification(`${playerName} has joined the lobby.`, 'success');
         
                 if (players.length === 1) {
-                    // Randomly pick the starting player
-                    lobby.current_player = (Math.random() < 0.5) ? 'player1' : 'player2';
-                    const { error: updateError } = await supabase
-                        .from('lobbies')
-                        .update({ current_player: lobby.current_player })
-                        .eq('id_text', lobbyId);
-        
-                    if (updateError) {
-                        throw new Error(updateError.message);
-                    }
-        
-                    const updatedPlayers = await supabase
-                        .from('players')
-                        .select('name')
-                        .eq('id_text', lobbyId);
-        
-                    if (updatedPlayers.data.length > 1) {
-                        const currentPlayerName = updatedPlayers.data[(lobby.current_player === 'player1' ? 0 : 1)].name;
-                        showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
-                        updateTurnInfo(currentPlayerName, playerName === currentPlayerName, updatedPlayers.data.length, lobby.seeds.length);
-                    }
+                    await pickStartingPlayer(lobbyId);
                 }
         
                 const updatedLobby = await supabase
@@ -543,6 +523,28 @@
             } catch (error) {
                 console.error('Error joining lobby:', error);
                 showNotification('Error joining lobby: ' + error.message, 'error');
+            }
+        }
+        
+        async function pickStartingPlayer(lobbyId) {
+            const currentPlayer = (Math.random() < 0.5) ? 'player1' : 'player2';
+            const { error: updateError } = await supabase
+                .from('lobbies')
+                .update({ current_player: currentPlayer })
+                .eq('id_text', lobbyId);
+        
+            if (updateError) {
+                throw new Error(updateError.message);
+            }
+        
+            const { data: updatedPlayers } = await supabase
+                .from('players')
+                .select('name')
+                .eq('id_text', lobbyId);
+        
+            if (updatedPlayers.length > 1) {
+                const currentPlayerName = updatedPlayers[(currentPlayer === 'player1' ? 0 : 1)].name;
+                showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
             }
         }
 
@@ -618,6 +620,11 @@
         
             if (lobby.seeds.length <= 1) {
                 showNotification("You cannot ban the final seed.", "error");
+                return;
+            }
+
+           if (playersLength < 2) {
+                showNotification("You cannot ban when alone in a lobby", "error");
                 return;
             }
         
