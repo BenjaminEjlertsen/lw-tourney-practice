@@ -248,6 +248,13 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        .turn-info {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+        }
 
 
     </style>
@@ -449,7 +456,6 @@
             }
         }
         
-                
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
             if (!playerName) {
@@ -530,6 +536,7 @@
                         if (updatedPlayers.data.length > 1) {
                             const currentPlayerName = updatedPlayers.data[(lobby.current_player === 'player1' ? 0 : 1)].name;
                             showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
+                            updateTurnInfo(currentPlayerName);
                         }
                     }
                 }
@@ -675,19 +682,13 @@
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
         
-            let turnInfo = '';
-            if (players.length > 1) {
-                turnInfo = isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...';
-            } else {
-                turnInfo = 'Waiting for another player to join...';
-            }
+            updateTurnInfo(currentPlayerName, players.length > 1);
         
             const lobbyDiv = document.getElementById('lobby');
             lobbyDiv.innerHTML = `
                 <h2>Lobby Info</h2>
                 <div>Lobby ID: ${lobbyId}</div>
                 <div>Current Player to Ban: ${currentPlayerName}</div>
-                <div>${turnInfo}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
                 ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || players.length < 2 || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
@@ -709,6 +710,19 @@
             if (lobby.seeds.length === 1) {
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
+        }
+        
+        function updateTurnInfo(currentPlayerName, isTurn) {
+            const turnInfoDiv = document.getElementById('turn-info');
+            if (!turnInfoDiv) {
+                const seedImagesDiv = document.getElementById('seed-images');
+                const newTurnInfoDiv = document.createElement('div');
+                newTurnInfoDiv.id = 'turn-info';
+                newTurnInfoDiv.className = 'turn-info';
+                seedImagesDiv.parentNode.insertBefore(newTurnInfoDiv, seedImagesDiv);
+            }
+        
+            document.getElementById('turn-info').innerText = isTurn ? `Your turn to ban, ${currentPlayerName}!` : `Waiting for ${currentPlayerName} to ban...`;
         }
 
         async function displayPlayers(lobbyId) {
