@@ -536,7 +536,7 @@
                         if (updatedPlayers.data.length > 1) {
                             const currentPlayerName = updatedPlayers.data[(lobby.current_player === 'player1' ? 0 : 1)].name;
                             showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
-                            updateTurnInfo(currentPlayerName);
+                            updateTurnInfo(currentPlayerName, playerName === currentPlayerName);
                         }
                     }
                 }
@@ -682,7 +682,7 @@
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
         
-            updateTurnInfo(currentPlayerName, players.length > 1);
+            updateTurnInfo(currentPlayerName, isCurrentPlayer && players.length > 1);
         
             const lobbyDiv = document.getElementById('lobby');
             lobbyDiv.innerHTML = `
@@ -712,7 +712,7 @@
             }
         }
         
-        function updateTurnInfo(currentPlayerName, isTurn) {
+        function updateTurnInfo(currentPlayerName, isCurrentPlayerTurn) {
             const turnInfoDiv = document.getElementById('turn-info');
             if (!turnInfoDiv) {
                 const seedImagesDiv = document.getElementById('seed-images');
@@ -722,7 +722,7 @@
                 seedImagesDiv.parentNode.insertBefore(newTurnInfoDiv, seedImagesDiv);
             }
         
-            document.getElementById('turn-info').innerText = isTurn ? `Your turn to ban, ${currentPlayerName}!` : `Waiting for ${currentPlayerName} to ban...`;
+            document.getElementById('turn-info').innerText = isCurrentPlayerTurn ? `Your turn to ban, ${currentPlayerName}!` : `Waiting for ${currentPlayerName} to ban...`;
         }
 
         async function displayPlayers(lobbyId) {
