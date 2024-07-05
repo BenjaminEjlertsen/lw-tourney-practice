@@ -503,11 +503,6 @@
                     .from('players')
                     .select('name')
                     .eq('id_text', lobbyId);
-
-                if (players.length >= 2) {
-                    showNotification('Lobby is full.', 'error');
-                    return;
-                }
         
                 await supabase
                     .from('players')
