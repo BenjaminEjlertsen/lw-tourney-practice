@@ -271,7 +271,7 @@
         <div class="input-group">
             <div class="input-group-item">
                 <button class="large-button" onclick="createLobby()">Create Lobby</button>
-                <p class="description">Create a new lobby and share the ID with your opponent.</p>
+                <p class="description">Create a new lobby and share the generated ID with your opponent.</p>
             </div>
             <div class="input-group-item">
                 <input type="text" id="lobbyIdInput" placeholder="Enter Lobby ID">
@@ -324,7 +324,6 @@
         </div>
     </div>
 
-
     <script>
         const seeds = {
         "1": [51706, 375060, 706131, 824517, 917340],
@@ -349,13 +348,17 @@
             notificationDiv.innerText = message;
             notificationDiv.className = `notification ${type}`;
             notificationContainer.appendChild(notificationDiv);
-        
-            // Remove the notification after 3 seconds
+            
+            // Remove the notification after 10 seconds
             setTimeout(() => {
                 notificationDiv.remove();
             }, 10000);
-        }
         
+            // Keep only the last 5 notifications
+            if (notificationContainer.children.length > 5) {
+                notificationContainer.firstChild.remove();
+            }
+        }
 
         function initializeState() {
             bannedSeeds = new Set();
@@ -435,7 +438,7 @@
                 console.error('Error creating lobby:', error);
                 showNotification('Error creating lobby: ' + error.message, 'error');
             } else {
-                showNotification('Lobby created with ID: ' + lobbyId, 'success');
+                showNotification('Lobby created with ID: ' + lobbyId + '. Share this ID with your opponent.', 'success');
                 const updatedLobby = await supabase
                     .from('lobbies')
                     .select('*')
@@ -446,6 +449,7 @@
             }
         }
         
+                
         async function joinLobby(lobbyId) {
             const playerName = document.getElementById('playerNameInput').value;
             if (!playerName) {
@@ -657,7 +661,7 @@
         async function displayLobby(lobby, lobbyId) {
             const availableSeeds = Array.isArray(lobby.seeds) ? lobby.seeds.join(', ') : '';
             const bannedSeeds = Array.isArray(lobby.banned_seeds) ? lobby.banned_seeds.join(', ') : '';
-        
+            
             // Fetch the current player's name
             const { data: players } = await supabase
                 .from('players')
@@ -668,16 +672,21 @@
             if (players && players.length > 0) {
                 currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
             }
-        
+            
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
+            
+            if (isCurrentPlayer) {
+                showNotification('Your turn to ban!', 'success');
+            } else {
+                showNotification('Waiting for the other player to ban...', 'info');
+            }
         
             const lobbyDiv = document.getElementById('lobby');
             lobbyDiv.innerHTML = `
                 <h2>Lobby Info</h2>
                 <div>Lobby ID: ${lobbyId}</div>
                 <div>Current Player to Ban: ${currentPlayerName}</div>
-                <div>${isCurrentPlayer ? 'Your turn to ban!' : 'Waiting for the other player to ban...'}</div>
                 <div>Available Seeds: ${availableSeeds}</div>
                 <div>Banned Seeds: ${bannedSeeds}</div>
                 ${lobby.seeds.map(seed => `<button ${!isCurrentPlayer || lobby.seeds.length <= 1 ? 'disabled' : ''} onclick="banSeed('${lobbyId}', ${seed})">Ban Seed ${seed}</button>`).join('')}
@@ -694,7 +703,7 @@
         
             // Disable round selection if both players are in the lobby
             document.getElementById('round-select').disabled = players.length >= 2;
-        
+            
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
