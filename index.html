@@ -622,11 +622,6 @@
                 showNotification("You cannot ban the final seed.", "error");
                 return;
             }
-
-           if (playersLength < 2) {
-                showNotification("You cannot ban when alone in a lobby", "error");
-                return;
-            }
         
             if (!Array.isArray(lobby.banned_seeds)) lobby.banned_seeds = [];
             if (!Array.isArray(lobby.seeds)) lobby.seeds = [];
@@ -649,7 +644,7 @@
         }
                 
         function subscribeToLobby(lobbyId) {
-            supabase
+            const channel = supabase
                 .channel(`public:lobbies:id_text=eq.${lobbyId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id_text=eq.${lobbyId}` }, payload => {
                     displayLobby(payload.new, lobbyId);
@@ -662,8 +657,37 @@
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'players', filter: `id_text=eq.${lobbyId}` }, payload => {
                     showNotification(`${payload.new.name} has joined the lobby.`, 'success');
                     displayPlayers(lobbyId);
+                    checkCurrentPlayer(lobbyId);  // Check current player after a player joins
                 })
                 .subscribe();
+        }
+        
+        async function checkCurrentPlayer(lobbyId) {
+            const { data: lobby, error: lobbyError } = await supabase
+                .from('lobbies')
+                .select('current_player')
+                .eq('id_text', lobbyId)
+                .single();
+        
+            if (lobbyError) {
+                console.error('Error fetching current player:', lobbyError);
+                return;
+            }
+        
+            const { data: players, error: playersError } = await supabase
+                .from('players')
+                .select('name')
+                .eq('id_text', lobbyId);
+        
+            if (playersError) {
+                console.error('Error fetching players:', playersError);
+                return;
+            }
+        
+            if (players.length > 1) {
+                const currentPlayerName = players[(lobby.current_player === 'player1' ? 0 : 1)].name;
+                showNotification(`Randomly picked ${currentPlayerName} to ban first.`, 'success');
+            }
         }
 
     
