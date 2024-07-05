@@ -381,7 +381,6 @@
             bannedSeeds = new Set();
             practiceSeeds = [];
             currentRound = "";
-            document.getElementById('round-select').disabled = false
             document.getElementById('round-select').value = "";
             document.getElementById('seed-images').innerHTML = '';
             document.getElementById('lobby').innerHTML = '';
@@ -736,7 +735,7 @@
                 }
             });
         
-            document.getElementById('round-select').disabled = true
+            document.getElementById('round-select').disabled = players.length >= 2;
             
             displayPlayers(lobbyId);
             if (lobby.seeds.length === 1) {
