@@ -30,12 +30,29 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .notification-container {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+        
         .notification {
-            margin-bottom: 20px;
             padding: 10px;
             border-radius: 5px;
-            display: none;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
             font-weight: bold;
+            pointer-events: auto;
         }
         .notification.error {
             background-color: #f8d7da;
@@ -245,7 +262,7 @@
 <body>
     <div class="container">
         <h1>Line War Tournament Seed Selector</h1>
-        <div class="notification" id="notification"></div>
+        <div id="notification-container" class="notification-container"></div>
     
         <div class="input-group-item">
             <input type="text" id="playerNameInput" placeholder="Enter Your Name">
@@ -290,8 +307,6 @@
             </select>
         </div>
         
-        <div class="notification" id="notification"></div>
-        
         <div class="seed-images" id="seed-images">
             <!-- Seed images will be inserted here -->
         </div>
@@ -324,20 +339,23 @@
         let panzoomInstance;
     
         function showNotification(message, type) {
-            const notificationDiv = document.getElementById('notification');
-            if (!notificationDiv) {
-                console.error('Notification element not found');
+            const notificationContainer = document.getElementById('notification-container');
+            if (!notificationContainer) {
+                console.error('Notification container element not found');
                 return;
             }
+        
+            const notificationDiv = document.createElement('div');
             notificationDiv.innerText = message;
             notificationDiv.className = `notification ${type}`;
-            notificationDiv.style.display = 'block';
+            notificationContainer.appendChild(notificationDiv);
         
-            // Keep the notification visible for 3 seconds before hiding it
-            //setTimeout(() => {
-            //    notificationDiv.style.display = 'none';
-            //}, 3000);
+            // Remove the notification after 3 seconds
+            setTimeout(() => {
+                notificationDiv.remove();
+            }, 10000);
         }
+        
 
         function initializeState() {
             bannedSeeds = new Set();
