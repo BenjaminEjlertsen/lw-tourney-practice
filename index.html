@@ -503,6 +503,17 @@
                     .from('players')
                     .select('name')
                     .eq('id_text', lobbyId);
+
+                if (playersError) {
+                    console.error('Error fetching players:', playersError);
+                    showNotification('Error fetching players: ' + playersError.message, 'error');
+                    return;
+                }
+            
+                if (players.length >= 2) {
+                    showNotification('Lobby is full.', 'error');
+                    return;
+                }
         
                 await supabase
                     .from('players')
