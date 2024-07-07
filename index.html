@@ -748,7 +748,7 @@
                 showNotification('Remaining seed is: ' + lobby.seeds[0], 'success');
             }
         }
-        function updateTurnInfo(currentPlayerName, isCurrentPlayerTurn, playersLength, lobbySeedsLength) {
+        function updateTurnInfo(currentPlayerName, isCurrentPlayerTurn, playersLength, lobby) {
             const turnInfoDiv = document.getElementById('turn-info');
             if (!turnInfoDiv) {
                 const seedImagesDiv = document.getElementById('seed-images');
