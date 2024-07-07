@@ -720,7 +720,7 @@
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
         
-            updateTurnInfo(currentPlayerName, isCurrentPlayer, players.length, lobby.seeds.length);
+            updateTurnInfo(currentPlayerName, isCurrentPlayer, players.length, lobby);
         
             const lobbyDiv = document.getElementById('lobby');
             lobbyDiv.innerHTML = `
@@ -765,7 +765,7 @@
                 turnText = "Waiting for another player to join...";
                 turnClass = "waiting";
             } else if (lobby.seeds.length === 1) {
-                turnText = "Final seed selected";
+                turnText = "Final seed selected. You will play: " + lobby.seeds[0] + ". Good luck!";
                 turnClass = "final-seed";
             } else {
                 turnText = isCurrentPlayerTurn ? `Your turn to ban, ${currentPlayerName}!` : `Waiting for ${currentPlayerName} to ban...`;
