@@ -730,7 +730,7 @@
             const playerName = document.getElementById('playerNameInput').value;
             const isCurrentPlayer = (playerName === currentPlayerName);
         
-            updateTurnInfo(currentPlayerName, isCurrentPlayer, players.length, lobby);
+            updateTurnInfo(currentPlayerName, isCurrentPlayer, players.length, lobby, players);
         
             const lobbyDiv = document.getElementById('lobby');
             lobbyDiv.innerHTML = `
@@ -760,7 +760,7 @@
                 showNotification('You will play seed(s): ' + lobby.seeds.slice(0, minSeedsToRemain).join(', '), 'success');
             }
         }
-        function updateTurnInfo(currentPlayerName, isCurrentPlayerTurn, playersLength, lobby) {
+        function updateTurnInfo(currentPlayerName, isCurrentPlayerTurn, playersLength, lobby, players) {
             const turnInfoDiv = document.getElementById('turn-info');
             if (!turnInfoDiv) {
                 const seedImagesDiv = document.getElementById('seed-images');
