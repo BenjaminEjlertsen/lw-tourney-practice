@@ -321,6 +321,7 @@
                 <option value="3">Round 3</option>
                 <option value="4">Finals Round 1</option>
                 <option value="5">Finals Round 2</option>
+                <option value="6">Semi-finals</option>
             </select>
         </div>
         
@@ -347,7 +348,8 @@
         "2": [346668, 741963, 851742, 933044, 820477],
         "3": [525637, 634611, 674629, 668659, 889078],
         "4": [40307, 46843, 258558, 926029, 981270],
-        "5": [117494, 229406, 312787, 860309, 865476]
+        "5": [117494, 229406, 312787, 860309, 865476],
+        "6": [123103,162217,359510,569902,683402,817972,918074]
         };
         let bannedSeeds = new Set();
         let practiceSeeds = [];
@@ -629,8 +631,11 @@
                 return;
             }
         
-            if (lobby.seeds.length <= 1) {
-                showNotification("You cannot ban the final seed.", "error");
+            // Determine the minimum seeds to remain based on the round
+            let minSeedsToRemain = (lobby.round === "6") ? 3 : 1;
+        
+            if (lobby.seeds.length <= minSeedsToRemain) {
+                showNotification(`You cannot ban more seeds. Minimum ${minSeedsToRemain} seed(s) must remain.`, "error");
                 return;
             }
         
@@ -653,8 +658,7 @@
                 displayLobby(lobby, lobbyId);
             }
         }
-
-                
+       
         function subscribeToLobby(lobbyId) {
             const channel = supabase
                 .channel(`public:lobbies:id_text=eq.${lobbyId}`)
