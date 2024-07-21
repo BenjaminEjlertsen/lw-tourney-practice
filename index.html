@@ -355,6 +355,7 @@
         let practiceSeeds = [];
         let currentRound = "1";
         let panzoomInstance;
+        let firstBanningPlayer = null; // To track the player who bans the first seed
     
         function showNotification(message, type) {
             const notificationContainer = document.getElementById('notification-container');
@@ -389,6 +390,7 @@
             document.getElementById('lobby').innerHTML = '';
             document.getElementById('players-container').innerHTML = '<div>Players: <span id="players"></span></div>';
             document.getElementById('notification').style.display = 'none';
+            firstBanningPlayer = "";
         }
 
         window.onload = () => {
@@ -645,6 +647,10 @@
             lobby.banned_seeds.push(seed);
             lobby.current_player = (lobby.current_player === 'player1' ? 'player2' : 'player1');
             lobby.seeds = lobby.seeds.filter(s => s !== seed);
+
+           if (lobby.banned_seeds.length === 1) {
+                firstBanningPlayer = playerName;
+            }
         
             const { error: updateError } = await supabase
                 .from('lobbies')
@@ -772,7 +778,8 @@
                 turnText = "Waiting for another player to join...";
                 turnClass = "waiting";
             } else if (lobby.seeds.length === minSeedsToRemain) {
-                turnText = "Final seed(s) selected. You will play: " + lobby.seeds.slice(0, minSeedsToRemain).join(', ') + ". Good luck!";
+                let firstPlayer = players.find(player => player.name !== firstBanningPlayer).name;
+                turnText = `Final seed(s) selected. You will play: ${lobby.seeds.slice(0, minSeedsToRemain).join(', ')}. ${firstPlayer} will pick the first seed to play. Good luck!`;
                 turnClass = "final-seed";
             } else {
                 turnText = isCurrentPlayerTurn ? `Your turn to ban, ${currentPlayerName}!` : `Waiting for ${currentPlayerName} to ban...`;
