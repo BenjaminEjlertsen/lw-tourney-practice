@@ -322,6 +322,7 @@
                 <option value="4">Finals Round 1</option>
                 <option value="5">Finals Round 2</option>
                 <option value="6">Semi-finals</option>
+                <option value="6">Final</option>
             </select>
         </div>
         
@@ -349,7 +350,8 @@
         "3": [525637, 634611, 674629, 668659, 889078],
         "4": [40307, 46843, 258558, 926029, 981270],
         "5": [117494, 229406, 312787, 860309, 865476],
-        "6": [123103,162217,359510,569902,683402,817972,918074]
+        "6": [123103,162217,359510,569902,683402,817972,918074],
+        "7": [394174,434285,538090,555762,574139,795381,987099]
         };
         let bannedSeeds = new Set();
         let practiceSeeds = [];
@@ -634,7 +636,7 @@
             }
         
             // Determine the minimum seeds to remain based on the round
-            let minSeedsToRemain = (lobby.round === "6") ? 3 : 1;
+            let minSeedsToRemain = (lobby.round >= "6") ? 3 : 1;
         
             if (lobby.seeds.length <= minSeedsToRemain) {
                 showNotification(`You cannot ban more seeds. Minimum ${minSeedsToRemain} seed(s) must remain.`, "error");
@@ -753,7 +755,7 @@
         
             document.getElementById('round-select').disabled = true
 
-            let minSeedsToRemain = (lobby.round === "6") ? 3 : 1;
+            let minSeedsToRemain = (lobby.round >= "6") ? 3 : 1;
             
             displayPlayers(lobbyId);
             if (lobby.seeds.length === minSeedsToRemain) {
@@ -772,7 +774,7 @@
         
             let turnText = "";
             let turnClass = "";
-            let minSeedsToRemain = (lobby.round === "6") ? 3 : 1;
+            let minSeedsToRemain = (lobby.round >= "6") ? 3 : 1;
         
             if (playersLength < 2) {
                 turnText = "Waiting for another player to join...";
